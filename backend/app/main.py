@@ -1,14 +1,15 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-from .seeds import seed_professions
-from . import models
+from .seeds import seed_characters, seed_professions, seed_recipes
 from .routers import characters, ingredients, recipes, planner
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup
     seed_professions()
+    seed_characters()
+    seed_recipes()
     yield
     # shutdown (nothing needed right now)
 

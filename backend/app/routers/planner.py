@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 
-from ..models import Recipe, RecipeIngredient, Character, CharacterRecipe
+from ..models import AppSettings, Recipe, RecipeIngredient, Character, CharacterRecipe
 from ..dtos import PlanItem, CharacterPlanItem
 from ..database import get_session
 
@@ -18,8 +18,19 @@ def get_options(character_id: int, session: Session = Depends(get_session)):
     if not character:
         raise HTTPException(status_code=404, detail="Character not found")
 
-    statement = select(CharacterRecipe).where(
-        CharacterRecipe.character_id == character_id
+    settings = session.get(AppSettings, 1)
+    if settings is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Select an expansion before planning",
+        )
+    
+    statement = select(CharacterRecipe).join(
+        Recipe,
+        CharacterRecipe.recipe_id == Recipe.id,
+    ).where(
+        CharacterRecipe.character_id == character_id,
+        Recipe.expansion_id == settings.current_expansion_id,
     )
 
     crs = session.exec(statement).all()
@@ -58,6 +69,13 @@ def calculate_plan(
     result = {}
     concentration_used = {}
 
+    settings = session.get(AppSettings, 1)
+    if settings is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Select an expansion before planning",
+        )
+
     for item in plan:
         character = session.get(Character, item.character_id)
 
@@ -77,12 +95,32 @@ def calculate_plan(
 
         cost = item.crafts * cr.concentration_cost
 
-        used = concentration_used.get(item.character_id, 0)
+        recipe = session.get(Recipe, item.recipe_id)
+        if recipe is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Recipe not found",
+            )
+
+        if recipe.expansion_id != settings.current_expansion_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Recipe does not belong to the selected expansion",
+            )
+
+        if cr.concentration_cost <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid concentration cost",
+            )
+
+        budget_key = (item.character_id, recipe.profession_id)
+        used = concentration_used.get(budget_key, 0)
 
         if used + cost > character.concentration:
             raise HTTPException(status_code=400, detail="Not enough concentration")
 
-        concentration_used[item.character_id] = used + cost
+        concentration_used[budget_key] = used + cost
 
         # get recipe + ingredients
         recipe = session.exec(

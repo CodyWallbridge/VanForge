@@ -7,4 +7,5 @@ class RecipeRead(SQLModel):
     name: str
     profit_per_craft: int = 0
     profession_id: int
+    expansion_id: int
     ingredients: List[RecipeIngredientRead] = []

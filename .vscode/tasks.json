@@ -3,8 +3,9 @@
   "tasks": [
     {
       "label": "Run Backend",
-      "type": "shell",
-      "command": "uvicorn app.main:app --reload",
+      "type": "process",
+      "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "uvicorn", "app.main:app", "--reload"],
       "options": {
         "cwd": "${workspaceFolder}/backend"
       },
@@ -20,6 +21,24 @@
       },
       "problemMatcher": [],
       "isBackground": true
+    },
+    {
+      "label": "Open VirtualEnvironment Terminal",
+      "type": "shell",
+      "command": "call \"${workspaceFolder}\\.venv\\Scripts\\activate.bat\"",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/K"]
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": []
     }
   ]
 }
