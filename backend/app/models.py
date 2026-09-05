@@ -1,0 +1,61 @@
+from typing import Optional, List
+from sqlmodel import SQLModel, Field, Relationship
+
+
+class Profession(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True)
+
+    recipes: List["Recipe"] = Relationship(back_populates="profession")
+
+
+class CharacterRecipe(SQLModel, table=True):
+    character_id: int = Field(foreign_key="character.id", primary_key=True)
+    recipe_id: int = Field(foreign_key="recipe.id", primary_key=True)
+
+    concentration_cost: int
+
+    character: Optional["Character"] = Relationship(back_populates="recipes")
+    recipe: Optional["Recipe"] = Relationship(back_populates="characters")
+
+
+class Character(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+
+    profession1_id: int = Field(foreign_key="profession.id")
+    profession2_id: int = Field(foreign_key="profession.id")
+
+    concentration: int = 1000
+
+    recipes: List[CharacterRecipe] = Relationship(back_populates="character")
+
+
+class RecipeIngredient(SQLModel, table=True):
+    recipe_id: int = Field(foreign_key="recipe.id", primary_key=True)
+    ingredient_id: int = Field(foreign_key="ingredient.id", primary_key=True)
+
+    amount_required: int
+
+    recipe: Optional["Recipe"] = Relationship(back_populates="ingredients")
+    ingredient: Optional["Ingredient"] = Relationship(back_populates="recipes")
+
+
+class Recipe(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    profit_per_craft: int = 0
+
+    profession_id: int = Field(foreign_key="profession.id")
+
+    profession: Optional[Profession] = Relationship(back_populates="recipes")
+
+    ingredients: List[RecipeIngredient] = Relationship(back_populates="recipe")
+    characters: List[CharacterRecipe] = Relationship(back_populates="recipe")
+
+
+class Ingredient(SQLModel, table=True):
+    id: Optional[int]  = Field(default=None, primary_key=True)
+    name: str = Field(index=True)
+
+    recipes: List[RecipeIngredient] = Relationship(back_populates="ingredient")
