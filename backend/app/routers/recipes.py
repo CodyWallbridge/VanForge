@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 
-from ..models import Recipe, RecipeIngredient
+from ..models import Expansion, Ingredient, Profession, Recipe, RecipeIngredient
 from ..dtos import RecipeCreate, RecipeRead, RecipeProfitUpdate
 from ..database import get_session
 
@@ -13,8 +13,44 @@ router = APIRouter(
 
 @router.post("/")
 def create_recipe(recipe_data: RecipeCreate, session: Session = Depends(get_session)):
+    name = recipe_data.name.strip()
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Recipe name cannot be blank",
+        )
+    
+    if session.get(Profession, recipe_data.profession_id) is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Profession does not exist",
+        )
+
+    if session.get(Expansion, recipe_data.expansion_id) is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Expansion does not exist",
+        )
+
+    ingredient_ids = set()
+
+    for ingredient in recipe_data.ingredients:
+        if ingredient.ingredient_id in ingredient_ids:
+            raise HTTPException(
+                status_code=400,
+                detail="Each ingredient can only appear once in a recipe",
+            )
+
+        if session.get(Ingredient, ingredient.ingredient_id) is None:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Ingredient {ingredient.ingredient_id} does not exist",
+            )
+
+        ingredient_ids.add(ingredient.ingredient_id)
+        
     recipe = Recipe(
-        name=recipe_data.name,
+        name=name,
         profession_id=recipe_data.profession_id,
         expansion_id=recipe_data.expansion_id,
         profit_per_craft=recipe_data.profit_per_craft,

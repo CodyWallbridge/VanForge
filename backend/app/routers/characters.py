@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
-from ..models import Character, CharacterRecipe, Recipe
-from ..dtos import CharacterRecipeCreate
+from ..models import Character, CharacterRecipe, Profession, Recipe
+from ..dtos import CharacterRecipeCreate, CharacterCreate
 from ..database import get_session
 
 router = APIRouter(
@@ -11,10 +11,33 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=Character)
-def create_character(
-    character: Character,
-    session: Session = Depends(get_session)
-):
+def create_character(character_data: CharacterCreate, session: Session = Depends(get_session)):
+    name = character_data.name.strip()
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Character name cannot be blank",
+        )
+
+    if character_data.profession1_id == character_data.profession2_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Character professions must be different",
+        )
+
+    for profession_id in (character_data.profession1_id, character_data.profession2_id):
+        if session.get(Profession, profession_id) is None:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Profession {profession_id} does not exist",
+            )
+
+    character = Character(
+        name=name,
+        profession1_id=character_data.profession1_id,
+        profession2_id=character_data.profession2_id,
+        concentration=character_data.concentration,
+    )
     session.add(character)
     session.commit()
     session.refresh(character)
