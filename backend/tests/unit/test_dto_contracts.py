@@ -1,8 +1,8 @@
-﻿import pytest
+import pytest
 from pydantic import ValidationError
 
 from backend.app.dtos import CharacterCreate, CharacterPlanItem, CharacterRecipeCreate
-from backend.app.dtos import IngredientCreate, IngredientRead, PlanItem, RecipeCreate
+from backend.app.dtos import IngredientCreate, IngredientRead, RecipeCreate
 from backend.app.dtos import RecipeIngredientCreate, RecipeIngredientRead, RecipeProfitUpdate, RecipeRead
 
 DTO_CASES = [
@@ -11,7 +11,6 @@ DTO_CASES = [
     (CharacterRecipeCreate, {"recipe_id": 2, "concentration_cost": 250}, {}),
     (IngredientCreate, {"name": "Argentleaf"}, {}),
     (IngredientRead, {"id": 1, "name": "Argentleaf"}, {}),
-    (PlanItem, {"recipe_id": 2, "crafts": 4}, {}),
     (RecipeCreate, {"name": "Flask", "profession_id": 1, "expansion_id": 1, "ingredients": [{"ingredient_id": 1, "amount_required": 8}]}, {"profit_per_craft": 0}),
     (RecipeIngredientCreate, {"ingredient_id": 1, "amount_required": 8}, {}),
     (RecipeIngredientRead, {"amount_required": 8, "ingredient": {"id": 1, "name": "Argentleaf"}}, {}),
@@ -31,7 +30,7 @@ def test_dto_valid_payload_and_serialization(
 ):
     dto = model.model_validate(payload)
 
-    assert dto.model_dump() == payload | defaults
+    assert dto.model_dump(exclude_none=True) == payload | defaults
     assert model.model_validate_json(
         dto.model_dump_json()
     ) == dto
@@ -42,11 +41,13 @@ def test_dto_valid_payload_and_serialization(
         (model, payload, field)
         for model, payload, _ in DTO_CASES
         for field in payload
+        if not (model is RecipeIngredientCreate and field == "ingredient_id")
     ],
     ids=[
         f"{model.__name__}-{field}"
         for model, payload, _ in DTO_CASES
         for field in payload
+        if not (model is RecipeIngredientCreate and field == "ingredient_id")
     ],
 )
 def test_dto_rejects_missing_required_field(
@@ -125,11 +126,3 @@ def test_recipe_ingredient_read_rejects_invalid_quantity_type():
 
     assert error.value.errors()[0]["loc"] == ("amount_required",)
 
-@pytest.mark.parametrize("crafts", [1.5, "not a number"])
-def test_plan_item_rejects_invalid_craft_type(
-    crafts,
-):
-    with pytest.raises(ValidationError) as error:
-        PlanItem(recipe_id=1, crafts=crafts)
-
-    assert error.value.errors()[0]["loc"] == ("crafts",)

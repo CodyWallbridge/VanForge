@@ -1,66 +1,79 @@
 # VanForge Backend
 
-FastAPI and SQLModel API for a WoW crafting planner.
-
-The goal is to maximize recipe profit using each character’s
-concentration amount as an independent budget for each profession.
+FastAPI and SQLModel API for managing characters, professions and expansion-specific crafting recipes.
 
 ## Setup
 
-From the project root, install the backend dependencies:
+Run from the project root using your activated `.venv`:
 
-```powershell
-python -m pip install -r backend/requirements.txt
-```
-
-Create or update the database:
-
-```powershell
+```cmd
+python -m pip install -r backend/requirements-dev.txt
 python -m alembic upgrade head
 ```
+
+For optional starter characters and Midnight recipes, explicitly run:
+
+```cmd
+python -m backend.app.seeds
+```
+
+The seed command can restore deleted starter entries or ingredient links. Normal startup only seeds the fixed profession catalog; it never restores characters or recipes. The initial migration creates Midnight and the selected-expansion setting. The explicit seed command creates missing initial settings without changing an existing selection.
 
 ## Run
 
 From the project root:
 
-```powershell
-cd backend
-python -m uvicorn app.main:app --reload
+```cmd
+python -m uvicorn backend.app.main:app --reload
 ```
 
-- API: http://127.0.0.1:8000
-- Interactive API documentation: http://127.0.0.1:8000/docs
+The VS Code Run Backend task also works. Interactive documentation: http://127.0.0.1:8000/docs
 
-Missing professions are seeded automatically at startup.
+## Endpoints
 
-## Structure
+| Resource | Operations |
+| --- | --- |
+| `/characters/` | Create and list |
+| `/characters/{id}` | Read, PATCH name/professions/concentration, delete |
+| `/characters/{id}/recipes` | List currently eligible assignments and assign a recipe |
+| `/characters/{id}/recipes/{recipe_id}` | PATCH concentration cost or remove assignment |
+| `/recipes/` | Create and list, optionally filtered by `expansion_id` and `profession_id` |
+| `/recipes/{id}` | Read, PATCH details/ingredients, delete |
+| `/recipes/{id}/profit` | PATCH profit in whole gold, including losses |
+| `/recipes/{id}/calculate` | Calculate ingredients for a craft count |
+| `/ingredients/` | List/search with `search`, create or reuse by name |
+| `/professions/` | List fixed profession catalog |
+| `/expansions/` | List and create |
+| `/expansions/{id}` | Read, rename, delete |
+| `/settings/` | Read or PATCH `current_expansion_id` |
+| `/planner/options/{character_id}` | List eligible crafting options |
+| `/planner/` | Validate a submitted plan and total its ingredients |
 
-- `app/main.py` — application setup and router registration.
-- `app/database.py` — database connection and session handling.
-- `app/models.py` — database tables and relationships.
-- `app/dtos/` — API request and response models.
-- `app/routers/` — API endpoints.
-- `app/seeds.py` — initial profession data.
-- `requirements.txt` — Python dependencies.
+PATCH requests leave omitted fields unchanged and reject explicit null values. Supplying `ingredients` replaces the complete ingredient list; an empty list clears it.
 
-## Database
+Each recipe ingredient accepts either `ingredient_id` or `name`, plus positive `amount_required`. Names are trimmed and matched case-insensitively. Existing ingredients are reused. Referencing the same ingredient twice, even by ID and name, is rejected. Shared ingredients survive recipe deletion.
 
-SQLite data is stored in `backend/vanforge.db`.
-The database file is excluded from Git.
+Characters have exactly two distinct professions and a concentration value from 0 to 1000. Each profession receives that full budget independently. Planning never spends the saved balance. Changing professions preserves learned recipes and costs; current lists and plans filter by active professions and selected expansion. Explicit assignment removal or character/recipe deletion removes the relevant learned-recipe rows.
 
-Foreign-key enforcement is enabled for backend connections.
-Alembic manages table creation and schema changes.
+Deleting a recipe also removes ingredient links. Expansion deletion is blocked while selected or while it contains recipes. Recipe edits, including ingredient creation and replacement, are committed together.
 
-Run migration commands from the project root. See
-[the migration guide](../alembic/README) for instructions.
+## Structure and database
 
-## Current status
+- `app/models.py`: database tables and relationships.
+- `app/dtos/`: request and response models.
+- `app/routers/`: HTTP endpoints.
+- `app/services/`: shared validation and ingredient resolution.
+- `app/seeds.py`: fixed professions and explicitly invoked starter data.
+- `backend/vanforge.db`: local SQLite database, ignored by Git.
 
-The API supports creating and listing characters, ingredients,
-and recipes, plus calculating ingredient requirements.
+Foreign keys are enabled on backend database connections. Alembic manages schema changes; see [the migration guide](../alembic/README). Missing records return 404, business validation returns 400, conflicts return 409, and request-schema validation returns 422. Successful deletion returns 204.
 
-Recipes store profit per craft in whole gold.
-Character recipes store character-specific concentration costs.
+## Tests
 
-Automatic profit optimization and independent concentration
-budgets per profession still need to be implemented in the planner.
+From the project root:
+
+```cmd
+python -m pytest backend/tests/unit
+```
+
+The full integration suite is planned separately. Automatic profit optimization, recipe categories, and a dedicated ingredient-management screen are not implemented yet.

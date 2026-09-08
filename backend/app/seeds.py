@@ -1,7 +1,7 @@
 from sqlmodel import Session, select
 
 from .database import engine
-from .models import Character, Expansion, Ingredient, Profession, Recipe, RecipeIngredient
+from .models import AppSettings, Character, Expansion, Ingredient, Profession, Recipe, RecipeIngredient
 
 PROFESSIONS = [
     "Alchemy",
@@ -191,3 +191,24 @@ def seed_recipes():
                     session.add(recipe_ingredient)
 
         session.commit()
+        
+def seed_initial_data():
+    """Explicitly load starter data; never called during normal application startup."""
+    seed_professions()
+    with Session(engine) as session:
+        expansion = session.exec(
+            select(Expansion).where(Expansion.name == "Midnight")
+        ).first()
+        if expansion is None:
+            expansion = Expansion(name="Midnight")
+            session.add(expansion)
+            session.flush()
+        if session.get(AppSettings, 1) is None:
+            settings = AppSettings(id=1, current_expansion_id=expansion.id)
+            session.add(settings)
+        session.commit()
+    seed_characters()
+    seed_recipes()
+
+if __name__ == "__main__":
+    seed_initial_data()

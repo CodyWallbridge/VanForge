@@ -20,8 +20,8 @@ class Profession(SQLModel, table=True):
     recipes: List["Recipe"] = Relationship(back_populates="profession")
 
 class CharacterRecipe(SQLModel, table=True):
-    character_id: int = Field(foreign_key="character.id", primary_key=True)
-    recipe_id: int = Field(foreign_key="recipe.id", primary_key=True)
+    character_id: int = Field(foreign_key="character.id", primary_key=True, ondelete="CASCADE")
+    recipe_id: int = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
 
     concentration_cost: int
 
@@ -37,10 +37,13 @@ class Character(SQLModel, table=True):
 
     concentration: int = 1000
 
-    recipes: List[CharacterRecipe] = Relationship(back_populates="character")
+    recipes: List[CharacterRecipe] = Relationship(
+        back_populates="character",
+        sa_relationship_kwargs={"passive_deletes": "all"},
+    )
 
 class RecipeIngredient(SQLModel, table=True):
-    recipe_id: int = Field(foreign_key="recipe.id", primary_key=True)
+    recipe_id: int = Field(foreign_key="recipe.id", primary_key=True, ondelete="CASCADE")
     ingredient_id: int = Field(foreign_key="ingredient.id", primary_key=True)
 
     amount_required: int
@@ -59,8 +62,14 @@ class Recipe(SQLModel, table=True):
     expansion: Optional[Expansion] = Relationship(back_populates="recipes")
     profession: Optional[Profession] = Relationship(back_populates="recipes")
 
-    ingredients: List[RecipeIngredient] = Relationship(back_populates="recipe")
-    characters: List[CharacterRecipe] = Relationship(back_populates="recipe")
+    ingredients: List[RecipeIngredient] = Relationship(
+        back_populates="recipe",
+        sa_relationship_kwargs={"passive_deletes": "all"},
+    )
+    characters: List[CharacterRecipe] = Relationship(
+        back_populates="recipe",
+        sa_relationship_kwargs={"passive_deletes": "all"},
+    )
 
 class Ingredient(SQLModel, table=True):
     id: Optional[int]  = Field(default=None, primary_key=True)

@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 
 from ..models import AppSettings, Recipe, RecipeIngredient, Character, CharacterRecipe
-from ..dtos import PlanItem, CharacterPlanItem
+from ..dtos import CharacterPlanItem
 from ..database import get_session
 
 router = APIRouter(
@@ -19,6 +19,7 @@ def get_options(character_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Character not found")
 
     settings = session.get(AppSettings, 1)
+
     if settings is None:
         raise HTTPException(
             status_code=400,
@@ -31,6 +32,7 @@ def get_options(character_id: int, session: Session = Depends(get_session)):
     ).where(
         CharacterRecipe.character_id == character_id,
         Recipe.expansion_id == settings.current_expansion_id,
+        Recipe.profession_id.in_([character.profession1_id, character.profession2_id]),
     )
 
     crs = session.exec(statement).all()
@@ -62,14 +64,12 @@ def get_options(character_id: int, session: Session = Depends(get_session)):
     return result
 
 @router.post("/")
-def calculate_plan(
-    plan: list[CharacterPlanItem],
-    session: Session = Depends(get_session)
-):
+def calculate_plan(plan: list[CharacterPlanItem], session: Session = Depends(get_session)):
     result = {}
     concentration_used = {}
 
     settings = session.get(AppSettings, 1)
+
     if settings is None:
         raise HTTPException(
             status_code=400,
@@ -83,6 +83,7 @@ def calculate_plan(
             raise HTTPException(status_code=404, detail="Character not found")
 
         # get concentration cost
+
         cr = session.exec(
             select(CharacterRecipe).where(
                 CharacterRecipe.character_id == item.character_id,
@@ -96,10 +97,17 @@ def calculate_plan(
         cost = item.crafts * cr.concentration_cost
 
         recipe = session.get(Recipe, item.recipe_id)
+
         if recipe is None:
             raise HTTPException(
                 status_code=404,
                 detail="Recipe not found",
+            )
+
+        if recipe.profession_id not in (character.profession1_id, character.profession2_id):
+            raise HTTPException(
+                status_code=400,
+                detail="Recipe does not belong to either active profession",
             )
 
         if recipe.expansion_id != settings.current_expansion_id:
@@ -123,6 +131,7 @@ def calculate_plan(
         concentration_used[budget_key] = used + cost
 
         # get recipe + ingredients
+
         recipe = session.exec(
             select(Recipe).options(
                 selectinload(Recipe.ingredients).selectinload(RecipeIngredient.ingredient)
