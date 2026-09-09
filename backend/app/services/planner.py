@@ -2,7 +2,9 @@ from fastapi import HTTPException
 from sqlmodel import Session
 from ..database import engine
 from ..backend_models.character_recipe import character_recipes
-from ..dtos import CharacterPlanItem
+from ..dtos import CharacterPlanItem, OptimizationRequest, OptimizationRead
+from ..dtos import CharacterOptimizationRead, ProfessionOptimizationRead
+from .optimization import optimize_crafts
 from .base import BaseService
 from .characters import CharacterService
 from .recipes import RecipeService
@@ -112,3 +114,84 @@ class PlannerService(BaseService):
                     ingredient_totals[name] = ingredient_totals.get(name, 0) + amount
 
             return ingredient_totals
+
+    def optimize_plan(self, request: OptimizationRequest):
+        with Session(self.engine) as session:
+            settings = self.settings_service.get_current(session)
+
+            if settings is None:
+                raise HTTPException(status_code=400, detail="Select an expansion before planning")
+
+            crafts = []
+            character_results = []
+            total_profit = 0
+
+            for character_id in request.character_ids:
+                character = self.character_service.get(session, character_id)
+
+                if character is None:
+                    raise HTTPException(status_code=404, detail="Character not found")
+
+                if character.concentration < 0 or character.concentration > 1000:
+                    raise HTTPException(status_code=400, detail="Invalid character concentration")
+
+                assignments = character_recipes.get_current(
+                    session,
+                    character,
+                    settings.current_expansion_id,
+                )
+                options_by_profession = {
+                    character.profession1_id: [],
+                    character.profession2_id: [],
+                }
+
+                for assignment in assignments:
+                    recipe = self.recipe_service.get(session, assignment.recipe_id)
+
+                    if recipe is None:
+                        raise HTTPException(status_code=404, detail="Recipe not found")
+
+                    if assignment.concentration_cost <= 0:
+                        raise HTTPException(status_code=400, detail="Invalid concentration cost")
+
+                    option = (recipe.id, assignment.concentration_cost, recipe.profit_per_craft)
+                    options_by_profession[recipe.profession_id].append(option)
+
+                profession_results = []
+                character_profit = 0
+
+                for profession_id, options in options_by_profession.items():
+                    quantities, profit, used = optimize_crafts(character.concentration, options)
+
+                    for recipe_id in sorted(quantities):
+                        craft = CharacterPlanItem(
+                            character_id=character_id,
+                            recipe_id=recipe_id,
+                            crafts=quantities[recipe_id],
+                        )
+                        crafts.append(craft)
+
+                    profession_result = ProfessionOptimizationRead(
+                        profession_id=profession_id,
+                        profit=profit,
+                        concentration_used=used,
+                        concentration_remaining=character.concentration - used,
+                    )
+                    profession_results.append(profession_result)
+                    character_profit += profit
+
+                character_result = CharacterOptimizationRead(
+                    character_id=character_id,
+                    character_name=character.name,
+                    profit=character_profit,
+                    professions=profession_results,
+                )
+                character_results.append(character_result)
+                total_profit += character_profit
+
+            return OptimizationRead(
+                expansion_id=settings.current_expansion_id,
+                total_profit=total_profit,
+                crafts=crafts,
+                characters=character_results,
+            )

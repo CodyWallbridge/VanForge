@@ -19,3 +19,7 @@ from .expansion_create import ExpansionCreate
 from .expansion_update import ExpansionUpdate
 from .app_settings_update import AppSettingsUpdate
 from .app_settings_read import AppSettingsRead
+from .optimization_request import OptimizationRequest
+from .profession_optimization_read import ProfessionOptimizationRead
+from .character_optimization_read import CharacterOptimizationRead
+from .optimization_read import OptimizationRead

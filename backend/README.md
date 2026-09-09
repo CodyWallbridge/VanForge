@@ -102,6 +102,7 @@ Deleting a character removes its recipe assignments. Deleting a recipe removes i
 | `/settings/` | Read or change the selected expansion |
 | `/planner/options/{character_id}` | List eligible crafting options |
 | `/planner/` | Validate a submitted plan and total ingredients |
+| `/planner/optimize` | Maximize profit for selected characters |
 
 ## Crafting rules
 
@@ -117,7 +118,7 @@ PATCH requests preserve omitted fields and reject explicit null values. Supplyin
 
 An expansion cannot be deleted while selected or while it contains recipes. Recipe updates and their ingredient changes are committed together.
 
-Automatic profit optimization and recipe categories are not implemented yet.
+Recipe categories and frontend craft-list export/import are not implemented yet.
 
 ## Tests
 
@@ -135,3 +136,27 @@ python -m pytest backend/tests/integration
 ```
 
 Integration tests use an isolated in-memory SQLite database with foreign keys enabled. Router service instances receive the test engine, and startup seeding is redirected to the test database.
+## Profit optimization
+
+POST `/planner/optimize` with a nonempty list of unique character IDs:
+
+```json
+{"character_ids": [1, 2, 3]}
+```
+
+The response contains `expansion_id`, `total_profit` in whole gold, a combined
+`crafts` list, and a `characters` breakdown. Each character includes profit and
+per-profession concentration used, concentration remaining, and profit.
+
+The exact optimizer evaluates whole-number combinations with unlimited repeats.
+It considers only known recipes in active professions and the selected expansion.
+Each profession independently receives the character's full saved concentration.
+Profit means entered net profit per craft; ingredient costs are not subtracted again.
+Equal-profit plans prefer less concentration. Zero-profit and loss-making crafts
+are omitted, and characters without profitable options remain in the breakdown.
+No saved concentration or recipe data is changed.
+
+Submit the response's `crafts` array directly to POST `/planner/` to calculate
+materials, optionally adjusting quantities first. The manual planner revalidates
+against current settings, professions, and concentration. There are no inventory
+or sales caps. Select-all clients send all selected character IDs in the same request.
