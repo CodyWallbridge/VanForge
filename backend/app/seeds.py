@@ -1,5 +1,4 @@
 from sqlmodel import Session, select
-
 from .database import engine
 from .models import AppSettings, Character, Expansion, Ingredient, Profession, Recipe, RecipeIngredient
 
@@ -98,7 +97,9 @@ def seed_professions():
             existing = session.exec(statement).first()
 
             if not existing:
-                session.add(Profession(name=name))
+                session.add(
+                    Profession(name=name),
+                )
 
         session.commit()
     print("Seeding complete")
@@ -106,12 +107,12 @@ def seed_professions():
 def seed_characters():
     with Session(engine) as session:
         professions = session.exec(
-            select(Profession)
+            select(Profession),
         ).all()
         profession_ids = {profession.name: profession.id for profession in professions}
 
         characters = session.exec(
-            select(Character)
+            select(Character),
         ).all()
         existing_names = {character.name.casefold() for character in characters}
 
@@ -126,23 +127,25 @@ def seed_characters():
                 concentration=1000,
             )
             session.add(character)
-            existing_names.add(name.casefold())
+            existing_names.add(
+                name.casefold(),
+            )
 
         session.commit()
 
 def seed_recipes():
     with Session(engine) as session:
         expansion = session.exec(
-            select(Expansion).where(Expansion.name == "Midnight")
+            select(Expansion).where(Expansion.name == "Midnight"),
         ).one()
 
         professions = session.exec(
-            select(Profession)
+            select(Profession),
         ).all()
         profession_ids = {profession.name: profession.id for profession in professions}
 
         ingredients = session.exec(
-            select(Ingredient)
+            select(Ingredient),
         ).all()
         ingredients_by_name = {ingredient.name.casefold(): ingredient for ingredient in ingredients}
 
@@ -153,7 +156,7 @@ def seed_recipes():
                     Recipe.name == name,
                     Recipe.expansion_id == expansion.id,
                     Recipe.profession_id == profession_id,
-                )
+                ),
             ).first()
 
             if recipe is None:
@@ -168,7 +171,7 @@ def seed_recipes():
 
             for ingredient_name, amount in materials.items():
                 ingredient = ingredients_by_name.get(
-                    ingredient_name.casefold()
+                    ingredient_name.casefold(),
                 )
 
                 if ingredient is None:
@@ -177,10 +180,12 @@ def seed_recipes():
                     session.flush()
                     ingredients_by_name[ingredient_name.casefold()] = ingredient
 
-                recipe_ingredient = session.get(
-                    RecipeIngredient,
-                    (recipe.id, ingredient.id),
-                )
+                recipe_ingredient = session.exec(
+                    select(RecipeIngredient).where(
+                        RecipeIngredient.recipe_id == recipe.id,
+                        RecipeIngredient.ingredient_id == ingredient.id,
+                    ),
+                ).first()
 
                 if recipe_ingredient is None:
                     recipe_ingredient = RecipeIngredient(
@@ -197,7 +202,7 @@ def seed_initial_data():
     seed_professions()
     with Session(engine) as session:
         expansion = session.exec(
-            select(Expansion).where(Expansion.name == "Midnight")
+            select(Expansion).where(Expansion.name == "Midnight"),
         ).first()
         if expansion is None:
             expansion = Expansion(name="Midnight")

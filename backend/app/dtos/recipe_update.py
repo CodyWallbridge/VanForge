@@ -1,4 +1,4 @@
-from sqlmodel import Field
+from pydantic import Field
 from .update_request import UpdateRequest
 from .recipe_ingredient_create import RecipeIngredientCreate
 

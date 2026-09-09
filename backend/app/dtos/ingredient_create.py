@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from pydantic import BaseModel, Field
 
-class IngredientCreate(SQLModel):
+class IngredientCreate(BaseModel):
     name: str = Field(min_length=1)

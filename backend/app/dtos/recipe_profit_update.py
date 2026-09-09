@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel
+from pydantic import BaseModel
 
-class RecipeProfitUpdate(SQLModel):
+class RecipeProfitUpdate(BaseModel):
     profit_per_craft: int

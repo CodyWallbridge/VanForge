@@ -1,7 +1,6 @@
-from pydantic import model_validator
-from sqlmodel import SQLModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-class RecipeIngredientCreate(SQLModel):
+class RecipeIngredientCreate(BaseModel):
     ingredient_id: int | None = None
     name: str | None = Field(default=None, min_length=1)
     amount_required: int = Field(gt=0)

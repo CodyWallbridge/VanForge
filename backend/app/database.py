@@ -1,4 +1,4 @@
-from sqlmodel import create_engine, Session
+from sqlmodel import create_engine
 from pathlib import Path
 from sqlalchemy import event
 
@@ -13,7 +13,3 @@ def enable_sqlite_foreign_keys(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
-
-def get_session():
-    with Session(engine) as session:
-        yield session

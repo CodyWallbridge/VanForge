@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from pydantic import BaseModel, Field
 
-class CharacterRecipeUpdate(SQLModel):
+class CharacterRecipeUpdate(BaseModel):
     concentration_cost: int = Field(gt=0)

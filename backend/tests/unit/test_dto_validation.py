@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from pydantic import ValidationError
 
 from backend.app.dtos import CharacterCreate, CharacterPlanItem, CharacterRecipeCreate
@@ -89,7 +89,11 @@ def test_plan_rejects_negative_or_fractional_crafts(
     crafts,
 ):
     with pytest.raises(ValidationError) as error:
-        CharacterPlanItem(character_id=1, recipe_id=1, crafts=crafts)
+        CharacterPlanItem(
+            character_id=1,
+            recipe_id=1,
+            crafts=crafts,
+        )
 
     assert error.value.errors()[0]["loc"] == ("crafts",)
 
@@ -97,7 +101,11 @@ def test_plan_rejects_negative_or_fractional_crafts(
 def test_plan_accepts_nonnegative_whole_crafts(
     crafts,
 ):
-    item = CharacterPlanItem(character_id=1, recipe_id=1, crafts=crafts)
+    item = CharacterPlanItem(
+        character_id=1,
+        recipe_id=1,
+        crafts=crafts,
+    )
 
     assert item.crafts == crafts
 

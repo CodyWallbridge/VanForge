@@ -1,5 +1,5 @@
-from sqlmodel import SQLModel, Field
+from pydantic import BaseModel, Field
 
-class CharacterRecipeCreate(SQLModel):
+class CharacterRecipeCreate(BaseModel):
     recipe_id: int
     concentration_cost: int = Field(gt=0)

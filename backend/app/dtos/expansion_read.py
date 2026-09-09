@@ -1,5 +1,7 @@
-from sqlmodel import SQLModel
+from pydantic import BaseModel, ConfigDict
 
-class ExpansionRead(SQLModel):
+class ExpansionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str

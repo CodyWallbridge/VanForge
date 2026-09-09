@@ -1,5 +1,7 @@
-from sqlmodel import SQLModel
+from pydantic import BaseModel, ConfigDict
 
-class ProfessionRead(SQLModel):
+class ProfessionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str

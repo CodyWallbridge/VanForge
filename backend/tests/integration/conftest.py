@@ -5,6 +5,14 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, Session, create_engine, select
 from backend.app import database, main, seeds
 from backend.app.models import AppSettings, Expansion, Profession, Recipe
+from backend.app.routers import characters, expansions, ingredients, planner, professions, recipes, settings
+from backend.app.services.characters import CharacterService
+from backend.app.services.expansions import ExpansionService
+from backend.app.services.ingredients import IngredientService
+from backend.app.services.planner import PlannerService
+from backend.app.services.professions import ProfessionService
+from backend.app.services.recipes import RecipeService
+from backend.app.services.settings import SettingsService
 
 @pytest.fixture
 def test_engine(
@@ -24,8 +32,16 @@ def test_engine(
         connection.execute("PRAGMA foreign_keys=ON")
 
     # Redirect both request sessions and startup seeding away from the saved DB.
-    monkeypatch.setattr(database, "engine", engine)
-    monkeypatch.setattr(seeds, "engine", engine)
+    monkeypatch.setattr(
+        database,
+        "engine",
+        engine,
+    )
+    monkeypatch.setattr(
+        seeds,
+        "engine",
+        engine,
+    )
     SQLModel.metadata.create_all(engine)
 
     try:
@@ -40,7 +56,9 @@ def catalog(
     seeds.seed_professions()
 
     with Session(test_engine) as session:
-        professions = session.exec(select(Profession)).all()
+        professions = session.exec(
+            select(Profession),
+        ).all()
         profession_ids = {profession.name: profession.id for profession in professions}
         midnight = Expansion(name="Midnight")
         future = Expansion(name="Future")
@@ -49,9 +67,21 @@ def catalog(
         session.flush()
 
         settings = AppSettings(id=1, current_expansion_id=midnight.id)
-        flask = Recipe(name="Flask", profession_id=profession_ids["Alchemy"], expansion_id=midnight.id)
-        alloy = Recipe(name="Alloy", profession_id=profession_ids["Blacksmithing"], expansion_id=midnight.id)
-        future_flask = Recipe(name="Future Flask", profession_id=profession_ids["Alchemy"], expansion_id=future.id)
+        flask = Recipe(
+            name="Flask",
+            profession_id=profession_ids["Alchemy"],
+            expansion_id=midnight.id,
+        )
+        alloy = Recipe(
+            name="Alloy",
+            profession_id=profession_ids["Blacksmithing"],
+            expansion_id=midnight.id,
+        )
+        future_flask = Recipe(
+            name="Future Flask",
+            profession_id=profession_ids["Alchemy"],
+            expansion_id=future.id,
+        )
         session.add_all([settings, flask, alloy, future_flask])
         session.commit()
 
@@ -70,31 +100,54 @@ def catalog(
 def client(
     test_engine,
     catalog,
+    monkeypatch,
 ):
-    def get_test_session():
-        with Session(test_engine) as session:
-            yield session
+    # Replace module-level services, not sessions, using the public engine override.
+    monkeypatch.setattr(
+        characters,
+        "character_service",
+        CharacterService(engine_override=test_engine),
+    )
+    monkeypatch.setattr(
+        expansions,
+        "expansion_service",
+        ExpansionService(engine_override=test_engine),
+    )
+    monkeypatch.setattr(
+        ingredients,
+        "ingredient_service",
+        IngredientService(engine_override=test_engine),
+    )
+    monkeypatch.setattr(
+        planner,
+        "planner_service",
+        PlannerService(engine_override=test_engine),
+    )
+    monkeypatch.setattr(
+        professions,
+        "profession_service",
+        ProfessionService(engine_override=test_engine),
+    )
+    monkeypatch.setattr(
+        recipes,
+        "recipe_service",
+        RecipeService(engine_override=test_engine),
+    )
+    monkeypatch.setattr(
+        settings,
+        "settings_service",
+        SettingsService(engine_override=test_engine),
+    )
 
-    previous_overrides = main.app.dependency_overrides.copy()
-    main.app.dependency_overrides[database.get_session] = get_test_session
-
-    try:
-        # Run the real lifespan, including profession seeding on the test engine.
-        with TestClient(main.app) as test_client:
-            yield test_client
-    finally:
-        main.app.dependency_overrides.clear()
-        main.app.dependency_overrides.update(previous_overrides)
+    with TestClient(main.app) as test_client:
+        yield test_client
 
 @pytest.fixture
 def character(
     client,
     catalog,
 ):
-    response = client.post(
-        "/characters/",
-        json={"name": "Tester", "profession1_id": catalog["alchemy"], "profession2_id": catalog["tailoring"]},
-    )
+    response = client.post("/characters/", json={"name": "Tester", "profession1_id": catalog["alchemy"], "profession2_id": catalog["tailoring"]})
     assert response.status_code == 201, response.text
 
     return response.json()

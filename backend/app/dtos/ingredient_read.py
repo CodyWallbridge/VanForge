@@ -1,5 +1,7 @@
-from sqlmodel import SQLModel
+from pydantic import BaseModel, ConfigDict
 
-class IngredientRead(SQLModel):
+class IngredientRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str

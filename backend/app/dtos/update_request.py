@@ -1,7 +1,6 @@
-from pydantic import model_validator
-from sqlmodel import SQLModel
+from pydantic import BaseModel, model_validator
 
-class UpdateRequest(SQLModel):
+class UpdateRequest(BaseModel):
     @model_validator(mode="after")
     def reject_explicit_nulls(self):
         for field in self.model_fields_set:

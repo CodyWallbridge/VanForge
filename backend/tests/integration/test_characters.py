@@ -1,3 +1,4 @@
+from backend.app.backend_models.character_recipe import character_recipes
 import pytest
 from sqlmodel import Session, select
 from backend.app.models import Character, CharacterRecipe, Recipe
@@ -9,10 +10,7 @@ def test_create_list_and_read_character(
 ):
     assert client.get("/characters/").json() == []
 
-    response = client.post(
-        "/characters/",
-        json={"name": " Vandredor ", "profession1_id": catalog["alchemy"], "profession2_id": catalog["tailoring"]},
-    )
+    response = client.post("/characters/", json={"name": " Vandredor ", "profession1_id": catalog["alchemy"], "profession2_id": catalog["tailoring"]})
     assert response.status_code == 201
     character = response.json()
     assert character["name"] == "Vandredor"
@@ -53,16 +51,10 @@ def test_duplicate_professions_rejected_on_create_and_update(
     catalog,
     character,
 ):
-    response = client.post(
-        "/characters/",
-        json={"name": "Invalid", "profession1_id": catalog["alchemy"], "profession2_id": catalog["alchemy"]},
-    )
+    response = client.post("/characters/", json={"name": "Invalid", "profession1_id": catalog["alchemy"], "profession2_id": catalog["alchemy"]})
     assert response.status_code == 400
 
-    response = client.patch(
-        f"/characters/{character['id']}",
-        json={"profession2_id": catalog["alchemy"]},
-    )
+    response = client.patch(f"/characters/{character['id']}", json={"profession2_id": catalog["alchemy"]})
     assert response.status_code == 400
     assert client.get(f"/characters/{character['id']}").json() == character
 
@@ -72,10 +64,7 @@ def test_patch_preserves_omitted_fields(
     character,
     concentration,
 ):
-    response = client.patch(
-        f"/characters/{character['id']}",
-        json={"concentration": concentration},
-    )
+    response = client.patch(f"/characters/{character['id']}", json={"concentration": concentration})
     expected = character.copy()
     expected["concentration"] = concentration
 
@@ -138,16 +127,10 @@ def test_profession_switch_preserves_assignments_and_filters_planning(
 ):
     character_id = character["id"]
     recipe_id = catalog["flask"]
-    response = client.post(
-        f"/characters/{character_id}/recipes",
-        json={"recipe_id": recipe_id, "concentration_cost": 250},
-    )
+    response = client.post(f"/characters/{character_id}/recipes", json={"recipe_id": recipe_id, "concentration_cost": 250})
     assert response.status_code == 201
 
-    response = client.patch(
-        f"/characters/{character_id}",
-        json={"profession1_id": catalog["blacksmithing"]},
-    )
+    response = client.patch(f"/characters/{character_id}", json={"profession1_id": catalog["blacksmithing"]})
     assert response.status_code == 200
     assert client.get(f"/characters/{character_id}/recipes").json() == []
     assert client.get(f"/planner/options/{character_id}").json() == []
@@ -156,12 +139,13 @@ def test_profession_switch_preserves_assignments_and_filters_planning(
     assert client.post("/planner/", json=plan).status_code == 400
 
     with Session(test_engine) as session:
-        assert session.get(CharacterRecipe, (character_id, recipe_id)).concentration_cost == 250
+        assert character_recipes.get_by_character_recipe(
+            session,
+            character_id,
+            recipe_id,
+        ).concentration_cost == 250
 
-    response = client.patch(
-        f"/characters/{character_id}",
-        json={"profession1_id": catalog["alchemy"]},
-    )
+    response = client.patch(f"/characters/{character_id}", json={"profession1_id": catalog["alchemy"]})
     assert response.status_code == 200
     assert client.get(f"/characters/{character_id}/recipes").json()[0]["concentration_cost"] == 250
     assert client.get(f"/planner/options/{character_id}").json()[0]["recipe_id"] == recipe_id
@@ -173,10 +157,7 @@ def test_current_recipes_filter_selected_expansion(
     character,
 ):
     for recipe_id in [catalog["flask"], catalog["future_flask"]]:
-        response = client.post(
-            f"/characters/{character['id']}/recipes",
-            json={"recipe_id": recipe_id, "concentration_cost": 250},
-        )
+        response = client.post(f"/characters/{character['id']}/recipes", json={"recipe_id": recipe_id, "concentration_cost": 250})
         assert response.status_code == 201
 
     current = client.get(f"/characters/{character['id']}/recipes").json()
@@ -210,7 +191,11 @@ def test_assignment_update_duplicate_and_removal(
     assert client.delete(assignment_path).status_code == 404
 
     with Session(test_engine) as session:
-        assert session.get(CharacterRecipe, (character["id"], catalog["flask"])) is None
+        assert character_recipes.get_by_character_recipe(
+            session,
+            character["id"],
+            catalog["flask"],
+        ) is None
         assert session.get(Recipe, catalog["flask"]) is not None
 
 @pytest.mark.parametrize("case, status", [("wrong_profession", 400), ("missing_recipe", 404), ("invalid_cost", 422)])
@@ -240,18 +225,12 @@ def test_delete_character_cascades_only_its_assignments(
     character,
     test_engine,
 ):
-    response = client.post(
-        "/characters/",
-        json={"name": "Other", "profession1_id": catalog["alchemy"], "profession2_id": catalog["tailoring"]},
-    )
+    response = client.post("/characters/", json={"name": "Other", "profession1_id": catalog["alchemy"], "profession2_id": catalog["tailoring"]})
     assert response.status_code == 201
     other_id = response.json()["id"]
 
     for character_id in [character["id"], other_id]:
-        response = client.post(
-            f"/characters/{character_id}/recipes",
-            json={"recipe_id": catalog["flask"], "concentration_cost": 250},
-        )
+        response = client.post(f"/characters/{character_id}/recipes", json={"recipe_id": catalog["flask"], "concentration_cost": 250})
         assert response.status_code == 201
 
     response = client.delete(f"/characters/{character['id']}")
@@ -262,7 +241,15 @@ def test_delete_character_cascades_only_its_assignments(
     assert client.get(f"/characters/{other_id}").status_code == 200
 
     with Session(test_engine) as session:
-        assert session.get(CharacterRecipe, (character["id"], catalog["flask"])) is None
-        assert session.get(CharacterRecipe, (other_id, catalog["flask"])) is not None
+        assert character_recipes.get_by_character_recipe(
+            session,
+            character["id"],
+            catalog["flask"],
+        ) is None
+        assert character_recipes.get_by_character_recipe(
+            session,
+            other_id,
+            catalog["flask"],
+        ) is not None
         assert session.get(Recipe, catalog["flask"]) is not None
         assert session.connection().exec_driver_sql("PRAGMA foreign_key_check").all() == []

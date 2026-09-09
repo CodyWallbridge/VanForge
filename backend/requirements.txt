@@ -2,3 +2,4 @@ fastapi
 uvicorn[standard]
 sqlmodel
 alembic
+pydantic>=2,<3

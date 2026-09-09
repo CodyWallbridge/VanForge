@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel
+from pydantic import BaseModel
 
-class AppSettingsUpdate(SQLModel):
+class AppSettingsUpdate(BaseModel):
     current_expansion_id: int

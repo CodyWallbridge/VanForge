@@ -32,7 +32,7 @@ def test_dto_valid_payload_and_serialization(
 
     assert dto.model_dump(exclude_none=True) == payload | defaults
     assert model.model_validate_json(
-        dto.model_dump_json()
+        dto.model_dump_json(),
     ) == dto
 
 @pytest.mark.parametrize(
@@ -62,8 +62,10 @@ def test_dto_rejects_missing_required_field(
         model.model_validate(incomplete)
 
     assert any(
-        item["loc"] == (missing_field,) and item["type"] == "missing"
-        for item in error.value.errors()
+        (
+            item["loc"] == (missing_field,) and item["type"] == "missing"
+            for item in error.value.errors()
+        ),
     )
 
 def test_recipe_create_builds_typed_ingredients():
@@ -95,8 +97,18 @@ def test_recipe_read_serializes_nested_ingredients():
     assert recipe.model_dump() == payload
 
 def test_recipe_read_default_ingredient_lists_are_independent():
-    first = RecipeRead(id=1, name="First", profession_id=1, expansion_id=1)
-    second = RecipeRead(id=2, name="Second", profession_id=1, expansion_id=1)
+    first = RecipeRead(
+        id=1,
+        name="First",
+        profession_id=1,
+        expansion_id=1,
+    )
+    second = RecipeRead(
+        id=2,
+        name="Second",
+        profession_id=1,
+        expansion_id=1,
+    )
     ingredient = RecipeIngredientRead(
         amount_required=8,
         ingredient=IngredientRead(id=1, name="Argentleaf"),
