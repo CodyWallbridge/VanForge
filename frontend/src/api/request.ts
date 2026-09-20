@@ -19,13 +19,24 @@ export async function request<T>(
         headers.set("Content-Type", "application/json");
     }
 
-    const response = await fetch(`${API_URL}${path}`, {
-        ...options,
-        headers,
-    });
+    let response: Response;
+
+    try {
+        response = await fetch(`${API_URL}${path}`, {
+            ...options,
+            headers,
+        });
+    } catch {
+        throw new Error("Cannot connect to the backend. Make sure it is running and try again.");
+    }
 
     if (!response.ok) {
         let message = `Request failed (${response.status})`;
+
+        if ([502, 503, 504].includes(response.status)) {
+            message = "The backend is unavailable. Make sure it is running and try again.";
+        }
+        
         let errorBody: ErrorResponse | undefined;
 
         try {

@@ -1,0 +1,170 @@
+.character-add-button,
+.character-form button[type="submit"] {
+    padding: 10px 16px;
+    color: #ffffff;
+    background: var(--accent);
+    border: 0;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.character-form button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.character-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.character-form .character-cancel-button {
+    padding: 10px 16px;
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.character-form .character-cancel-button:hover:not(:disabled) {
+    background: var(--hover-background);
+}
+
+.character-form {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--sidebar-background);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.character-form h2 {
+    margin: 0 0 16px;
+}
+
+.character-form-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.character-form-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.character-form-fields input,
+.character-form-fields select {
+    width: 100%;
+    padding: 10px 12px;
+    color: var(--text-color);
+    background: var(--page-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.character-form [role="alert"] {
+    margin-bottom: 16px;
+    color: var(--accent);
+}
+
+@media (max-width: 640px) {
+    .character-form-fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+.character-row-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.character-edit-button,
+.character-delete-button {
+    padding: 7px 12px;
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.character-edit-button:hover:not(:disabled),
+.character-delete-button:hover:not(:disabled) {
+    background: var(--hover-background);
+}
+
+.character-edit-button:disabled,
+.character-delete-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.character-delete-error {
+    color: var(--accent);
+}
+
+.character-add-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.character-delete-dialog {
+    width: min(420px, calc(100% - 32px));
+    padding: 24px;
+    color: var(--text-color);
+    background: var(--sidebar-background);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px #0005;
+}
+
+.character-delete-dialog::backdrop {
+    background: #0009;
+}
+
+.character-delete-dialog h2 {
+    margin: 0 0 12px;
+}
+
+.character-delete-dialog p {
+    margin: 0 0 20px;
+}
+
+.character-delete-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.character-delete-dialog-actions button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.character-delete-cancel {
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--border-color);
+}
+
+.character-delete-confirm {
+    color: #ffffff;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    font-weight: 600;
+}
+
+.character-delete-dialog-actions button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
