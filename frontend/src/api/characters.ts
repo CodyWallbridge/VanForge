@@ -13,6 +13,16 @@ export async function getCharacters(): Promise<CharacterRead[]> {
     return characters;
 }
 
+export async function getCharacter(characterId: number): Promise<CharacterRead> {
+    const character = await request<CharacterRead>(`/characters/${characterId}`);
+
+    if (character === undefined) {
+        throw new Error("The server returned no character.");
+    }
+
+    return character;
+}
+
 export async function createCharacter(
     character: CharacterCreate,
 ): Promise<CharacterRead> {

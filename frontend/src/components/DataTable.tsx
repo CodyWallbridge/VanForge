@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { ReactNode } from "react";
 import "./DataTable.css";
 
@@ -6,6 +6,7 @@ export interface TableColumn<T> {
     key: string;
     label: string;
     value: (row: T) => string | number;
+    render?: (row: T) => ReactNode;
 }
 
 interface DataTableProps<T> {
@@ -27,6 +28,7 @@ export default function DataTable<T>({
     rowActions,
     emptyMessage = "No matching results.",
 }: DataTableProps<T>) {
+    const searchId = useId();
     const [search, setSearch] = useState("");
     const [sortKey, setSortKey] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -74,9 +76,9 @@ export default function DataTable<T>({
         <div className="data-table">
             <div className="data-table-toolbar">
                 <div className="data-table-search">
-                    <label htmlFor="table-search">{searchLabel}</label>
+                    <label htmlFor={searchId}>{searchLabel}</label>
                     <input
-                        id="table-search"
+                        id={searchId}
                         type="search"
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
@@ -145,7 +147,9 @@ export default function DataTable<T>({
                         {visibleRows.map((row) => (
                             <tr key={rowKey(row)}>
                                 {columns.map((column) => (
-                                    <td key={column.key}>{column.value(row)}</td>
+                                    <td key={column.key}>
+                                        {column.render ? column.render(row) : column.value(row)}
+                                    </td>
                                 ))}
                                 {rowActions &&
                                     <td className="data-table-row-actions">

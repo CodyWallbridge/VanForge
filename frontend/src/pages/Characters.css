@@ -112,3 +112,14 @@
     align-items: center;
     gap: 8px;
 }
+
+
+.character-details-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.character-details-link:hover {
+    text-decoration: underline;
+}

@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import "./App.css";
 import Characters from "./pages/Characters";
+import CharacterDetails from "./pages/CharacterDetails";
 import Recipes from "./pages/Recipes";
 
 function getInitialDarkMode(): boolean {
@@ -73,6 +74,7 @@ export default function App() {
                         }
                     />
                     <Route path="/characters" element={<Characters />} />
+                    <Route path="/characters/:characterId" element={<CharacterDetails />} />
                     <Route path="/recipes" element={<Recipes />} />
                     <Route
                         path="/expansions"

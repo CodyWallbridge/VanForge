@@ -1,0 +1,129 @@
+.character-details-back {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.character-details-back:hover {
+    text-decoration: underline;
+}
+
+.character-details-summary,
+.character-details-note {
+    margin: 0 0 12px;
+}
+
+.character-profession {
+    margin-top: 28px;
+}
+
+.character-profession h2 {
+    margin: 0 0 16px;
+}
+
+.character-details-page .data-table table {
+    min-width: 680px;
+}
+
+.character-details-page .data-table-controls .known-recipe-add,
+.known-recipe-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    color: #ffffff;
+    background: var(--accent);
+    border: 0;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.known-recipe-form {
+    margin-top: 24px;
+    padding: 20px;
+    background: var(--sidebar-background);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.known-recipe-form h2 {
+    margin: 0 0 16px;
+}
+
+.known-recipe-form-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.known-recipe-form-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.known-recipe-form-fields input,
+.known-recipe-form-fields select {
+    width: 100%;
+    padding: 10px 12px;
+    color: var(--text-color);
+    background: var(--page-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.known-recipe-form-actions,
+.known-recipe-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.known-recipe-form-actions {
+    margin-top: 16px;
+}
+
+.known-recipe-row-actions {
+    justify-content: flex-end;
+}
+
+.known-recipe-cancel,
+.known-recipe-row-actions button {
+    padding: 8px 12px;
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.known-recipe-cancel:hover:not(:disabled),
+.known-recipe-row-actions button:hover:not(:disabled) {
+    background: var(--hover-background);
+}
+
+.known-recipe-form button:disabled,
+.known-recipe-row-actions button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.known-recipe-error {
+    color: var(--accent);
+}
+
+@media (max-width: 640px) {
+    .known-recipe-form-fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+.known-recipe-empty a {
+    color: var(--accent);
+    font-weight: 600;
+}

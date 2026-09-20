@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { createCharacter, deleteCharacter, getCharacters, updateCharacter } from "../api/characters";
 import { getProfessions } from "../api/professions";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -186,7 +187,16 @@ export default function Characters() {
     );
 
     const columns: TableColumn<CharacterRead>[] = [
-        { key: "name", label: "Name", value: (character) => character.name },
+        {
+            key: "name",
+            label: "Name",
+            value: (character) => character.name,
+            render: (character) => (
+                <Link className="character-details-link" to={`/characters/${character.id}`}>
+                    {character.name}
+                </Link>
+            ),
+        },
         {
             key: "firstProfession",
             label: "First profession",
