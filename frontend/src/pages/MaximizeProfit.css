@@ -1,0 +1,221 @@
+﻿.maximize-intro {
+    margin: 0 0 8px;
+}
+
+.maximize-expansion {
+    margin: 0 0 24px;
+}
+
+.maximize-expansion a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.maximize-expansion a:hover {
+    text-decoration: underline;
+}
+
+.maximize-selection,
+.maximize-character-result {
+    padding: 20px;
+    background: var(--sidebar-background);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.maximize-selection-heading,
+.maximize-run,
+.maximize-results-heading,
+.maximize-character-result-heading,
+.maximize-profession-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.maximize-selection-heading,
+.maximize-results-heading {
+    margin-bottom: 16px;
+}
+
+.maximize-selection-heading h2,
+.maximize-results-heading h2,
+.maximize-character-result-heading h3,
+.maximize-profession-heading h4 {
+    margin: 0;
+}
+
+.maximize-selection-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.maximize-selection-actions button {
+    padding: 8px 12px;
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.maximize-selection-actions button:hover:not(:disabled) {
+    background: var(--hover-background);
+}
+
+.maximize-character-section + .maximize-character-section {
+    margin-top: 24px;
+}
+
+.maximize-character-section h3 {
+    margin: 0 0 12px;
+}
+
+.maximize-character-section p {
+    margin: 0 0 12px;
+}
+
+.maximize-character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+}
+
+.maximize-character {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    background: var(--page-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.maximize-character:has(input:checked) {
+    border-color: var(--accent);
+}
+
+.maximize-character-unavailable {
+    opacity: 0.7;
+    cursor: default;
+}
+
+.maximize-character-unavailable a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.maximize-character-unavailable a:hover {
+    text-decoration: underline;
+}
+
+.maximize-character input {
+    margin-top: 3px;
+    accent-color: var(--accent);
+}
+
+.maximize-character span {
+    display: grid;
+    gap: 3px;
+}
+
+.maximize-character small {
+    color: var(--muted-text);
+    line-height: 1.4;
+}
+
+.maximize-run {
+    margin-top: 20px;
+}
+
+.maximize-run button {
+    padding: 10px 16px;
+    color: #ffffff;
+    background: var(--accent);
+    border: 0;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.maximize-run button:disabled,
+.maximize-selection-actions button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.maximize-error {
+    color: var(--accent);
+}
+
+.maximize-results {
+    margin-top: 28px;
+}
+
+.maximize-results-heading strong,
+.maximize-character-result-heading strong {
+    color: var(--accent);
+    font-size: 1.15rem;
+}
+
+.maximize-character-result {
+    margin-top: 16px;
+}
+
+.maximize-profession-result {
+    margin-top: 20px;
+}
+
+.maximize-profession-heading {
+    margin-bottom: 10px;
+}
+
+.maximize-profession-heading span {
+    color: var(--muted-text);
+}
+
+.maximize-profession-result p {
+    margin: 0;
+}
+
+.maximize-crafts-scroll {
+    overflow-x: auto;
+}
+
+.maximize-crafts {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.maximize-crafts th,
+.maximize-crafts td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.maximize-crafts th {
+    color: var(--muted-text);
+    font-size: 0.85rem;
+}
+
+.maximize-crafts th:not(:first-child),
+.maximize-crafts td:not(:first-child) {
+    text-align: right;
+}
+
+@media (max-width: 700px) {
+    .maximize-selection-heading,
+    .maximize-run,
+    .maximize-results-heading,
+    .maximize-character-result-heading,
+    .maximize-profession-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

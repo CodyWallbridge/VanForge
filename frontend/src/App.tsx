@@ -6,6 +6,7 @@ import Characters from "./pages/Characters";
 import CharacterDetails from "./pages/CharacterDetails";
 import Recipes from "./pages/Recipes";
 import Expansions from "./pages/Expansions";
+import MaximizeProfit from "./pages/MaximizeProfit";
 
 function getInitialDarkMode(): boolean {
     try {
@@ -51,17 +52,7 @@ export default function App() {
 
             <main className="main-content">
                 <Routes>
-                    <Route path="/maximize"
-                        element={
-                            <>
-                                <h1>Maximize Profit</h1>
-                                <p>
-                                    Select characters and generate profitable
-                                    crafting recommendations.
-                                </p>
-                            </>
-                        }
-                    />
+                    <Route path="/maximize" element={<MaximizeProfit />} />
                     <Route
                         path="/manual"
                         element={

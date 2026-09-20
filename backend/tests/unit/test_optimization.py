@@ -1,4 +1,5 @@
-from itertools import product
+﻿from itertools import product
+from random import Random
 import pytest
 from pydantic import ValidationError
 from backend.app.dtos import OptimizationRequest
@@ -71,3 +72,75 @@ def test_exact_solution_matches_exhaustive_enumeration():
 def test_selection_rejects_empty_or_duplicate_ids(ids):
     with pytest.raises(ValidationError):
         OptimizationRequest(character_ids=ids)
+
+
+def test_lower_ratio_recipe_wins_when_high_ratio_craft_leaves_budget_unused():
+    quantities, profit, used = optimize_crafts(1000, [(1, 505, 2525), (2, 250, 1000)])
+
+    assert quantities == {2: 4}
+    assert profit == 4000
+    assert used == 1000
+
+def test_best_plan_mixes_300_and_200_cost_recipes():
+    quantities, profit, used = optimize_crafts(1000, [(1, 300, 1000), (2, 200, 650)])
+
+    assert quantities == {1: 2, 2: 2}
+    assert profit == 3300
+    assert used == 1000
+
+def test_full_budget_can_combine_expensive_and_small_crafts():
+    quantities, profit, used = optimize_crafts(1000, [(1, 997, 1100), (2, 1, 1)])
+
+    assert quantities == {1: 1, 2: 3}
+    assert profit == 1103
+    assert used == 1000
+
+def test_randomized_combinations_match_independent_exhaustive_search():
+    random = Random(2417)
+
+    for _ in range(300):
+        budget = random.randint(0, 18)
+        option_count = random.randint(1, 4)
+        options = []
+
+        for recipe_id in range(1, option_count + 1):
+            cost = random.randint(2, 10)
+            profit = random.randint(-5, 25)
+            options.append((recipe_id, cost, profit))
+
+        expected_profit = 0
+        expected_used = 0
+
+        def search(index: int, used: int, profit: int):
+            nonlocal expected_profit, expected_used
+
+            if index == len(options):
+                if profit > expected_profit or (profit == expected_profit and used < expected_used):
+                    expected_profit = profit
+                    expected_used = used
+
+                return
+
+            _, cost, value = options[index]
+            max_count = (budget - used) // cost
+
+            for count in range(max_count + 1):
+                search(
+                    index + 1,
+                    used + count * cost,
+                    profit + count * value,
+                )
+
+        search(0, 0, 0)
+        quantities, profit, used = optimize_crafts(budget, options)
+        actual_used = 0
+        actual_profit = 0
+
+        for recipe_id, cost, value in options:
+            count = quantities.get(recipe_id, 0)
+            actual_used += count * cost
+            actual_profit += count * value
+
+        assert (profit, used) == (expected_profit, expected_used)
+        assert actual_used == used
+        assert actual_profit == profit
