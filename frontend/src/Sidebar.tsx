@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 interface SidebarProps {
     darkMode: boolean;
@@ -61,10 +61,13 @@ export default function Sidebar({
 
     return (
         <aside className="sidebar">
-            <div className="sidebar-brand">
-                <span className="brand-name">VanForge</span>
-                <span className="brand-description">Crafting Planner</span>
-            </div>
+            <Link className="sidebar-brand" to="/maximize" aria-label="VanForge home">
+                <img className="brand-icon" src="/vanforge.jpg" alt="" />
+                <span className="brand-copy">
+                    <span className="brand-name"><span>Van</span><span>Forge</span></span>
+                    <span className="brand-description">Crafting Planner</span>
+                </span>
+            </Link>
 
             <nav aria-label="Main navigation">
                 {navigationGroups.map((group) => (

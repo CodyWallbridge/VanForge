@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import "./App.css";
 import Characters from "./pages/Characters";
@@ -54,6 +54,7 @@ export default function App() {
 
             <main className="main-content">
                 <Routes>
+                    <Route path="/" element={<Navigate to="/maximize" replace />} />
                     <Route path="/maximize" element={<MaximizeProfit />} />
                     <Route path="/manual" element={<ManualPlanner />} />
                     <Route path="/characters" element={<Characters />} />
