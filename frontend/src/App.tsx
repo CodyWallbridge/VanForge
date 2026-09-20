@@ -7,6 +7,7 @@ import CharacterDetails from "./pages/CharacterDetails";
 import Recipes from "./pages/Recipes";
 import Expansions from "./pages/Expansions";
 import MaximizeProfit from "./pages/MaximizeProfit";
+import ManualPlanner from "./pages/ManualPlanner";
 
 function getInitialDarkMode(): boolean {
     try {
@@ -53,18 +54,7 @@ export default function App() {
             <main className="main-content">
                 <Routes>
                     <Route path="/maximize" element={<MaximizeProfit />} />
-                    <Route
-                        path="/manual"
-                        element={
-                            <>
-                                <h1>Manual Planner</h1>
-                                <p>
-                                    Enter craft quantities and calculate the
-                                    materials you need.
-                                </p>
-                            </>
-                        }
-                    />
+                    <Route path="/manual" element={<ManualPlanner />} />
                     <Route path="/characters" element={<Characters />} />
                     <Route path="/characters/:characterId" element={<CharacterDetails />} />
                     <Route path="/recipes" element={<Recipes />} />

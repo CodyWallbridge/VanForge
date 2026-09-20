@@ -219,3 +219,32 @@
         flex-direction: column;
     }
 }
+
+
+.maximize-results-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.maximize-manual-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 16px;
+    color: #ffffff;
+    background: var(--accent);
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.maximize-manual-link:hover {
+    background: var(--focus-color);
+}
+
+@media (max-width: 700px) {
+    .maximize-results-actions {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

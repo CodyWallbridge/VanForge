@@ -230,7 +230,18 @@ export default function MaximizeProfit() {
                         <section className="maximize-results" aria-labelledby="maximize-results-title">
                             <div className="maximize-results-heading">
                                 <h2 id="maximize-results-title">Recommended crafts</h2>
-                                <strong>Total profit: {formatGold(result.total_profit)}</strong>
+                                <div className="maximize-results-actions">
+                                    <strong>Total profit: {formatGold(result.total_profit)}</strong>
+                                    {result.crafts.length > 0 && (
+                                        <Link
+                                            className="maximize-manual-link"
+                                            to="/manual"
+                                            state={{ crafts: result.crafts, expansionId: result.expansion_id }}
+                                        >
+                                            Use in Manual Planner
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
 
                             {result.characters.map((characterResult) => (

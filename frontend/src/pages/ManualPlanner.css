@@ -1,0 +1,152 @@
+﻿.manual-page > p {
+    margin: 0 0 12px;
+}
+
+.manual-expansion {
+    margin-bottom: 24px !important;
+}
+
+.manual-expansion a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.manual-expansion a:hover {
+    text-decoration: underline;
+}
+
+.manual-import-note {
+    padding: 10px 14px;
+    background: var(--hover-background);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+}
+
+.manual-add-form {
+    padding: 20px;
+    background: var(--sidebar-background);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.manual-add-form h2,
+.manual-section-heading h2,
+.manual-materials h2 {
+    margin: 0 0 16px;
+}
+
+.manual-add-fields {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(220px, 2fr) 110px auto;
+    align-items: end;
+    gap: 12px;
+}
+
+.manual-add-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.manual-add-fields input,
+.manual-add-fields select,
+.manual-craft-count {
+    width: 100%;
+    padding: 10px 12px;
+    color: var(--text-color);
+    background: var(--page-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.manual-add-button,
+.manual-calculate button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    color: #ffffff;
+    background: var(--accent);
+    border: 0;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.manual-plan,
+.manual-materials {
+    margin-top: 28px;
+}
+
+.manual-section-heading,
+.manual-calculate {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.manual-clear-button,
+.manual-remove-button {
+    padding: 8px 12px;
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.manual-clear-button:hover:not(:disabled),
+.manual-remove-button:hover:not(:disabled) {
+    background: var(--hover-background);
+}
+
+.manual-page .data-table table {
+    min-width: 760px;
+}
+
+.manual-page .data-table-actions-heading,
+.manual-page .data-table-row-actions {
+    width: 90px;
+}
+
+.manual-craft-count {
+    max-width: 95px;
+}
+
+.manual-calculate {
+    margin-top: 16px;
+}
+
+.manual-add-button:disabled,
+.manual-calculate button:disabled,
+.manual-clear-button:disabled,
+.manual-remove-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.manual-error {
+    color: var(--accent);
+}
+
+@media (max-width: 850px) {
+    .manual-add-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .manual-add-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .manual-section-heading,
+    .manual-calculate {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
