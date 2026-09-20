@@ -107,64 +107,8 @@
     cursor: default;
 }
 
-.character-delete-error {
-    color: var(--accent);
-}
-
 .character-add-button {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-}
-
-.character-delete-dialog {
-    width: min(420px, calc(100% - 32px));
-    padding: 24px;
-    color: var(--text-color);
-    background: var(--sidebar-background);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    box-shadow: 0 20px 60px #0005;
-}
-
-.character-delete-dialog::backdrop {
-    background: #0009;
-}
-
-.character-delete-dialog h2 {
-    margin: 0 0 12px;
-}
-
-.character-delete-dialog p {
-    margin: 0 0 20px;
-}
-
-.character-delete-dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-}
-
-.character-delete-dialog-actions button {
-    padding: 10px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.character-delete-cancel {
-    color: var(--text-color);
-    background: transparent;
-    border: 1px solid var(--border-color);
-}
-
-.character-delete-confirm {
-    color: #ffffff;
-    background: var(--accent);
-    border: 1px solid var(--accent);
-    font-weight: 600;
-}
-
-.character-delete-dialog-actions button:disabled {
-    opacity: 0.5;
-    cursor: default;
 }

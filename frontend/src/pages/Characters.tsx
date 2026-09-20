@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createCharacter, deleteCharacter, getCharacters, updateCharacter } from "../api/characters";
 import { getProfessions } from "../api/professions";
+import ConfirmDialog from "../components/ConfirmDialog";
 import DataTable from "../components/DataTable";
 import type { TableColumn } from "../components/DataTable";
 import type { CharacterRead } from "../dto/CharacterRead";
@@ -25,7 +26,6 @@ export default function Characters() {
     const [formError, setFormError] = useState<string | null>(null);
 
     const [characterToDelete, setCharacterToDelete] = useState<CharacterRead | null>(null);
-    const deleteDialogRef = useRef<HTMLDialogElement>(null);
 
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -66,20 +66,6 @@ export default function Characters() {
             active = false;
         };
     }, []);
-
-    useEffect(() => {
-        const dialog = deleteDialogRef.current;
-
-        if (!dialog) {
-            return;
-        }
-
-        if (characterToDelete && !dialog.open) {
-            dialog.showModal();
-        } else if (!characterToDelete && dialog.open) {
-            dialog.close();
-        }
-    }, [characterToDelete]);
 
     function editCharacter(character: CharacterRead) {
         setEditingCharacter(character);
@@ -224,44 +210,16 @@ export default function Characters() {
         <>
             <h1>Characters</h1>
 
-            <dialog
-                ref={deleteDialogRef}
-                className="character-delete-dialog"
-                aria-labelledby="character-delete-title"
+            <ConfirmDialog
+                open={characterToDelete !== null}
+                title="Delete character?"
+                message={<>Delete <strong>{characterToDelete?.name}</strong>? Their known recipes will also be removed.</>}
+                confirmLabel="Delete character"
+                busy={deletingId !== null}
+                error={deleteError}
+                onConfirm={() => void removeCharacter()}
                 onClose={() => setCharacterToDelete(null)}
-                onCancel={(event) => {
-                    if (deletingId !== null) {
-                        event.preventDefault();
-                    }
-                }}
-            >
-                <h2 id="character-delete-title">Delete character?</h2>
-                <p>
-                    Delete <strong>{characterToDelete?.name}</strong>? Their known
-                    recipes will also be removed.
-                </p>
-
-                {deleteError && <p role="alert" className="character-delete-error">{deleteError}</p>}
-
-                <div className="character-delete-dialog-actions">
-                    <button
-                        type="button"
-                        className="character-delete-cancel"
-                        disabled={deletingId !== null}
-                        onClick={() => setCharacterToDelete(null)}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        className="character-delete-confirm"
-                        disabled={deletingId !== null}
-                        onClick={() => void removeCharacter()}
-                    >
-                        {deletingId !== null ? "Deleting..." : "Delete character"}
-                    </button>
-                </div>
-            </dialog>
+            />
 
             {showForm && (
                 <form className="character-form" onSubmit={saveCharacter}>

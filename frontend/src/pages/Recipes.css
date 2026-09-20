@@ -1,0 +1,134 @@
+.recipes-page .data-table table {
+    min-width: 920px;
+}
+
+.recipes-page .data-table-controls .recipe-add-button,
+.recipe-save-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    color: #ffffff;
+    background: var(--accent);
+    border: 0;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.recipe-form {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--sidebar-background);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.recipe-form h2 {
+    margin: 0 0 16px;
+}
+
+.recipe-form-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.recipe-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.recipe-form input,
+.recipe-form select {
+    width: 100%;
+    padding: 10px 12px;
+    color: var(--text-color);
+    background: var(--page-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.recipe-ingredients-heading,
+.recipe-form-actions,
+.recipe-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.recipe-ingredients-heading {
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.recipe-ingredients-heading h3 {
+    margin: 0;
+}
+
+.recipe-ingredients-heading button,
+.recipe-cancel-button,
+.recipe-row-actions button,
+.recipe-remove-ingredient {
+    padding: 8px 12px;
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.recipe-ingredients-heading button:hover:not(:disabled),
+.recipe-cancel-button:hover:not(:disabled),
+.recipe-row-actions button:hover:not(:disabled),
+.recipe-remove-ingredient:hover:not(:disabled) {
+    background: var(--hover-background);
+}
+
+.recipe-ingredients {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.recipe-ingredient-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(100px, 1fr) auto;
+    align-items: end;
+    gap: 12px;
+}
+
+.recipe-remove-ingredient {
+    height: 42px;
+}
+
+.recipe-form-actions {
+    margin-top: 16px;
+}
+
+.recipe-row-actions {
+    justify-content: flex-end;
+}
+
+.recipe-form button:disabled,
+.recipe-row-actions button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.recipe-form-error {
+    color: var(--accent);
+}
+
+@media (max-width: 640px) {
+    .recipe-form-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .recipe-ingredient-row {
+        grid-template-columns: minmax(0, 1fr) 90px auto;
+    }
+}
