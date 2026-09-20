@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import "./App.css";
 import Characters from "./pages/Characters";
@@ -8,6 +8,7 @@ import Recipes from "./pages/Recipes";
 import Expansions from "./pages/Expansions";
 import MaximizeProfit from "./pages/MaximizeProfit";
 import ManualPlanner from "./pages/ManualPlanner";
+import NotFound from "./pages/NotFound";
 
 function getInitialDarkMode(): boolean {
     try {
@@ -59,10 +60,7 @@ export default function App() {
                     <Route path="/characters/:characterId" element={<CharacterDetails />} />
                     <Route path="/recipes" element={<Recipes />} />
                     <Route path="/expansions" element={<Expansions />} />
-                    <Route
-                        path="*"
-                        element={<Navigate to="/maximize" replace />}
-                    />
+                    <Route path="*" element={<NotFound />} />
                 </Routes>
             </main>
         </div>
