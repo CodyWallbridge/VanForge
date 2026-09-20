@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import "./App.css";
 import Characters from "./pages/Characters";
 import CharacterDetails from "./pages/CharacterDetails";
 import Recipes from "./pages/Recipes";
+import Expansions from "./pages/Expansions";
 
 function getInitialDarkMode(): boolean {
     try {
@@ -76,18 +77,7 @@ export default function App() {
                     <Route path="/characters" element={<Characters />} />
                     <Route path="/characters/:characterId" element={<CharacterDetails />} />
                     <Route path="/recipes" element={<Recipes />} />
-                    <Route
-                        path="/expansions"
-                        element={
-                            <>
-                                <h1>Expansions</h1>
-                                <p>
-                                    Manage expansions and select the current
-                                    expansion for planning.
-                                </p>
-                            </>
-                        }
-                    />
+                    <Route path="/expansions" element={<Expansions />} />
                     <Route
                         path="*"
                         element={<Navigate to="/maximize" replace />}

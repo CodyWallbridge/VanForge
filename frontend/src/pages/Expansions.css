@@ -1,0 +1,101 @@
+﻿.expansion-current-summary {
+    margin: 0 0 20px;
+}
+
+.expansion-current-summary strong {
+    color: var(--text-color);
+}
+
+.expansions-page .data-table-actions-heading,
+.expansions-page .data-table-row-actions {
+    width: 260px;
+}
+
+.expansions-page .data-table-controls .expansion-add-button,
+.expansion-save-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    color: #ffffff;
+    background: var(--accent);
+    border: 0;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.expansion-form {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--sidebar-background);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.expansion-form h2 {
+    margin: 0 0 16px;
+}
+
+.expansion-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 420px;
+    font-weight: 600;
+}
+
+.expansion-form input {
+    width: 100%;
+    padding: 10px 12px;
+    color: var(--text-color);
+    background: var(--page-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.expansion-form-actions,
+.expansion-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.expansion-form-actions {
+    margin-top: 16px;
+}
+
+.expansion-row-actions {
+    justify-content: flex-end;
+}
+
+.expansion-cancel-button,
+.expansion-row-actions button {
+    padding: 8px 12px;
+    color: var(--text-color);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.expansion-cancel-button:hover:not(:disabled),
+.expansion-row-actions button:hover:not(:disabled) {
+    background: var(--hover-background);
+}
+
+.expansion-form button:disabled,
+.expansion-row-actions button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.expansion-current-label {
+    color: var(--green);
+    font-weight: 700;
+}
+
+.expansion-form-error,
+.expansion-current-error {
+    color: var(--accent);
+}

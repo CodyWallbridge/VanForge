@@ -1,4 +1,4 @@
-import type { AppSettingsRead } from "../dto/AppSettingsRead";
+﻿import type { AppSettingsRead } from "../dto/AppSettingsRead";
 import { request } from "./request";
 
 export async function getSettings(): Promise<AppSettingsRead> {
@@ -9,4 +9,18 @@ export async function getSettings(): Promise<AppSettingsRead> {
     }
 
     return settings;
+}
+
+
+export async function setCurrentExpansion(expansionId: number): Promise<AppSettingsRead> {
+    const updated = await request<AppSettingsRead>("/settings/", {
+        method: "PATCH",
+        body: JSON.stringify({ current_expansion_id: expansionId }),
+    });
+
+    if (updated === undefined) {
+        throw new Error("The server returned no updated settings.");
+    }
+
+    return updated;
 }
