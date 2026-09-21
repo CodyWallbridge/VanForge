@@ -20,7 +20,6 @@ def test_create_list_and_read_character(
 
     with Session(test_engine) as session:
         assert session.get(Character, character["id"]).name == "Vandredor"
-        assert session.connection().exec_driver_sql("PRAGMA foreign_keys").scalar() == 1
 
 @pytest.mark.parametrize(
     "changes, status",
@@ -252,4 +251,3 @@ def test_delete_character_cascades_only_its_assignments(
             catalog["flask"],
         ) is not None
         assert session.get(Recipe, catalog["flask"]) is not None
-        assert session.connection().exec_driver_sql("PRAGMA foreign_key_check").all() == []

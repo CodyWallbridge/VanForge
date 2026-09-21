@@ -1,13 +1,14 @@
 VanForge Database Migrations
 ===========================
 
-Alembic manages changes to the SQLite database structure.
+Alembic manages changes to the PostgreSQL database structure.
 Run all commands below from the project root.
 
 Configuration
 -------------
-Database: backend/vanforge.db
-Connection settings: alembic.ini
+Database URL: DATABASE_URL in the root .env file
+Connection setup: backend/app/database.py
+Alembic environment: alembic/env.py
 Table definitions: backend/app/models.py
 Migration scripts: alembic/versions/
 
@@ -22,7 +23,7 @@ The backend seeds missing professions when it starts.
 
 Create a migration
 ------------------
-1. Apply any existing migrations:
+1. Apply existing migrations:
    python -m alembic upgrade head
 
 2. Edit the table definitions in backend/app/models.py.
@@ -31,14 +32,12 @@ Create a migration
    python -m alembic revision --autogenerate -m "describe the change"
 
 4. Review the generated upgrade() and downgrade() functions.
-   If the script references sqlmodel types, add:
-   import sqlmodel
 
 5. Apply the migration:
    python -m alembic upgrade head
 
-Autogenerate compares the models with the configured database.
-Review its output before applying it.
+Autogenerate compares the SQLModel metadata with the database selected by
+DATABASE_URL. Always review its output before applying it.
 
 Check migration status
 ----------------------
@@ -48,4 +47,4 @@ python -m alembic history
 Version control
 ---------------
 Commit migration scripts alongside the related model changes.
-Local database files are ignored by Git.
+Never commit .env files or database credentials.

@@ -1,15 +1,21 @@
-from sqlmodel import create_engine
+import os
 from pathlib import Path
-from sqlalchemy import event
+from dotenv import load_dotenv
+from sqlalchemy.engine import make_url
+from sqlmodel import create_engine
 
-DATABASE_PATH = Path(__file__).resolve().parent.parent / "vanforge.db"
-DATABASE_URL = f"sqlite:///{DATABASE_PATH.as_posix()}"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(PROJECT_ROOT / ".env")
 
-# echo=True is helpful during development (logs SQL queries)
-engine = create_engine(DATABASE_URL, echo=True)
+database_url = os.getenv("DATABASE_URL")
 
-@event.listens_for(engine, "connect")
-def enable_sqlite_foreign_keys(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+if not database_url:
+    raise RuntimeError("DATABASE_URL is not set")
+
+DATABASE_URL = make_url(database_url).set(drivername="postgresql+psycopg")
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=True,
+    pool_pre_ping=True,
+)

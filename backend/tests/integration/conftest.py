@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import event
-from sqlalchemy.pool import StaticPool
+import os
+from sqlalchemy.engine import make_url
 from sqlmodel import SQLModel, Session, create_engine, select
 from backend.app import database, main, seeds
 from backend.app.models import AppSettings, Expansion, Profession, Recipe
@@ -18,20 +18,21 @@ from backend.app.services.settings import SettingsService
 def test_engine(
     monkeypatch,
 ):
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    test_database_url = os.getenv("TEST_DATABASE_URL")
 
-    @event.listens_for(engine, "connect")
-    def enable_foreign_keys(
-        connection,
-        connection_record,
-    ):
-        connection.execute("PRAGMA foreign_keys=ON")
+    if not test_database_url:
+        raise RuntimeError("TEST_DATABASE_URL is not set")
 
-    # Redirect both request sessions and startup seeding away from the saved DB.
+    test_database_url = make_url(test_database_url).set(drivername="postgresql+psycopg")
+
+    if test_database_url == database.DATABASE_URL:
+        raise RuntimeError("TEST_DATABASE_URL must not use the development database")
+
+    engine = create_engine(test_database_url, pool_pre_ping=True)
+
+    SQLModel.metadata.drop_all(engine)
+    SQLModel.metadata.create_all(engine)
+
     monkeypatch.setattr(
         database,
         "engine",
@@ -42,11 +43,11 @@ def test_engine(
         "engine",
         engine,
     )
-    SQLModel.metadata.create_all(engine)
 
     try:
         yield engine
     finally:
+        SQLModel.metadata.drop_all(engine)
         engine.dispose()
 
 @pytest.fixture

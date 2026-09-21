@@ -4,6 +4,17 @@ FastAPI API for managing characters, professions, expansion-specific recipes, an
 
 ## Setup
 
+VanForge uses PostgreSQL for development, testing, and production.
+
+Create a `.env` file in the project root:
+
+```dotenv
+DATABASE_URL=postgresql://username:password@host/database?sslmode=require
+TEST_DATABASE_URL=postgresql://username:password@test-host/test-database?sslmode=require
+```
+
+`DATABASE_URL` is used by the application and Alembic. `TEST_DATABASE_URL` must point to a separate database or Neon branch because integration tests recreate its application tables.
+
 Run these commands separately from the project root with your virtual environment activated:
 
 ```cmd
@@ -11,7 +22,7 @@ python -m pip install -r backend/requirements-dev.txt
 python -m alembic upgrade head
 ```
 
-To load starter characters and Midnight recipes:
+To load the starter expansion, characters, recipes, ingredients, and professions:
 
 ```cmd
 python -m backend.app.seeds
@@ -63,9 +74,9 @@ Responses are refreshed, loaded with required relationships, or converted to DTO
 
 ## Database and migrations
 
-The application uses SQLite at `backend/vanforge.db`. This file is ignored by Git.
+The application uses PostgreSQL. For local development, the connection string is loaded from `DATABASE_URL` in the root `.env` file. Deployed environments provide the same variable through their hosting configuration.
 
-Foreign-key enforcement is enabled on application database connections. Alembic manages schema changes.
+PostgreSQL enforces the declared foreign keys. Alembic loads the application database configuration and manages schema changes.
 
 After changing table definitions:
 
@@ -135,7 +146,8 @@ python -m pytest backend/tests/unit
 python -m pytest backend/tests/integration
 ```
 
-Integration tests use an isolated in-memory SQLite database with foreign keys enabled. Router service instances receive the test engine, and startup seeding is redirected to the test database.
+Integration tests use the PostgreSQL database identified by `TEST_DATABASE_URL`. The test fixture recreates the application tables for each test. Never set `TEST_DATABASE_URL` to the development or production database. CI starts a temporary PostgreSQL service for integration tests.
+
 ## Profit optimization
 
 POST `/planner/optimize` with a nonempty list of unique character IDs:
