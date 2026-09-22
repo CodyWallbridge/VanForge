@@ -1,8 +1,10 @@
+import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from .utils.validation import InvalidNameError
-from contextlib import asynccontextmanager
 from .seeds import seed_professions
 from .routers import accounts, characters, ingredients, recipes, planner, expansions, settings, professions
 
@@ -14,6 +16,20 @@ async def lifespan(app: FastAPI):
     # shutdown (nothing needed right now)
 
 app = FastAPI(lifespan=lifespan)
+
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(accounts.router)
 app.include_router(characters.router)
