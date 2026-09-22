@@ -23,3 +23,5 @@ from .optimization_request import OptimizationRequest
 from .profession_optimization_read import ProfessionOptimizationRead
 from .character_optimization_read import CharacterOptimizationRead
 from .optimization_read import OptimizationRead
+from .account_read import AccountRead
+from .account_role_update import AccountRoleUpdate

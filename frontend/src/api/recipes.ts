@@ -42,6 +42,22 @@ export async function updateRecipe(
     return updated;
 }
 
+export async function updateRecipeProfit(
+    recipeId: number,
+    profitPerCraft: number,
+): Promise<RecipeRead> {
+    const updated = await request<RecipeRead>(`/recipes/${recipeId}/profit`, {
+        method: "PATCH",
+        body: JSON.stringify({ profit_per_craft: profitPerCraft }),
+    });
+
+    if (updated === undefined) {
+        throw new Error("The server returned no updated recipe.");
+    }
+
+    return updated;
+}
+
 export async function deleteRecipe(recipeId: number): Promise<void> {
     await request<void>(`/recipes/${recipeId}`, {
         method: "DELETE",

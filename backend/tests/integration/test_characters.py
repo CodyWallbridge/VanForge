@@ -1,7 +1,7 @@
 from backend.app.backend_models.character_recipe import character_recipes
 import pytest
 from sqlmodel import Session, select
-from backend.app.models import Character, CharacterRecipe, Recipe
+from backend.app.models import Account, Character, CharacterRecipe, Recipe
 
 def test_create_list_and_read_character(
     client,
@@ -251,3 +251,37 @@ def test_delete_character_cascades_only_its_assignments(
             catalog["flask"],
         ) is not None
         assert session.get(Recipe, catalog["flask"]) is not None
+
+def test_account_cannot_access_another_accounts_character(
+    client,
+    catalog,
+    test_engine,
+):
+    with Session(test_engine) as session:
+        other_account = Account(
+            auth_user_id="other-user",
+            email="other@example.com",
+            role="user",
+        )
+        session.add(other_account)
+        session.flush()
+
+        other_character = Character(
+            account_id=other_account.id,
+            name="Private Character",
+            profession1_id=catalog["alchemy"],
+            profession2_id=catalog["tailoring"],
+            concentration=1000,
+        )
+        session.add(other_character)
+        session.commit()
+        character_id = other_character.id
+
+    assert client.get(f"/characters/{character_id}").status_code == 404
+    assert client.patch(f"/characters/{character_id}", json={"name": "Changed"}).status_code == 404
+    assert client.delete(f"/characters/{character_id}").status_code == 404
+    assert client.get(f"/characters/{character_id}/recipes").status_code == 404
+    assert client.post(f"/characters/{character_id}/recipes", json={"recipe_id": catalog["flask"], "concentration_cost": 250}).status_code == 404
+    assert client.get(f"/planner/options/{character_id}").status_code == 404
+    assert client.post("/planner/optimize", json={"character_ids": [character_id]}).status_code == 404
+    assert all(character["id"] != character_id for character in client.get("/characters/").json())

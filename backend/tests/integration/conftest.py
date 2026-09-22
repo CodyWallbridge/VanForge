@@ -4,8 +4,10 @@ import os
 from sqlalchemy.engine import make_url
 from sqlmodel import SQLModel, Session, create_engine, select
 from backend.app import database, main, seeds
-from backend.app.models import AppSettings, Expansion, Profession, Recipe
-from backend.app.routers import characters, expansions, ingredients, planner, professions, recipes, settings
+from backend.app.dependencies import get_current_account
+from backend.app.models import Account, AppSettings, Expansion, Profession, Recipe
+from backend.app.routers import accounts, characters, expansions, ingredients, planner, professions, recipes, settings
+from backend.app.services.accounts import AccountService
 from backend.app.services.characters import CharacterService
 from backend.app.services.expansions import ExpansionService
 from backend.app.services.ingredients import IngredientService
@@ -61,13 +63,19 @@ def catalog(
             select(Profession),
         ).all()
         profession_ids = {profession.name: profession.id for profession in professions}
+        account = Account(
+            auth_user_id="integration-test-user",
+            email="integration@example.com",
+            role="admin",
+        )
         midnight = Expansion(name="Midnight")
         future = Expansion(name="Future")
+        session.add(account)
         session.add(midnight)
         session.add(future)
         session.flush()
 
-        settings = AppSettings(id=1, current_expansion_id=midnight.id)
+        settings = AppSettings(account_id=account.id, current_expansion_id=midnight.id)
         flask = Recipe(
             name="Flask",
             profession_id=profession_ids["Alchemy"],
@@ -87,6 +95,7 @@ def catalog(
         session.commit()
 
         return {
+            "account": account.id,
             "alchemy": profession_ids["Alchemy"],
             "tailoring": profession_ids["Tailoring"],
             "blacksmithing": profession_ids["Blacksmithing"],
@@ -104,6 +113,11 @@ def client(
     monkeypatch,
 ):
     # Replace module-level services, not sessions, using the public engine override.
+    monkeypatch.setattr(
+        accounts,
+        "account_service",
+        AccountService(engine_override=test_engine),
+    )
     monkeypatch.setattr(
         characters,
         "character_service",
@@ -140,8 +154,17 @@ def client(
         SettingsService(engine_override=test_engine),
     )
 
-    with TestClient(main.app) as test_client:
-        yield test_client
+    def override_current_account():
+        with Session(test_engine) as session:
+            return session.get(Account, catalog["account"])
+
+    main.app.dependency_overrides[get_current_account] = override_current_account
+
+    try:
+        with TestClient(main.app) as test_client:
+            yield test_client
+    finally:
+        main.app.dependency_overrides.pop(get_current_account, None)
 
 @pytest.fixture
 def character(

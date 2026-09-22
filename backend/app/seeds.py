@@ -1,6 +1,6 @@
 from sqlmodel import Session, select
 from .database import engine
-from .models import AppSettings, Character, Expansion, Ingredient, Profession, Recipe, RecipeIngredient
+from .models import Expansion, Ingredient, Profession, Recipe, RecipeIngredient
 
 PROFESSIONS = [
     "Alchemy",
@@ -11,37 +11,6 @@ PROFESSIONS = [
     "Jewelcrafting",
     "Leatherworking",
     "Tailoring",
-]
-
-CHARACTERS = [
-    ("Vandredor", "Alchemy", "Enchanting"),
-    ("Vanakin", "Alchemy", "Tailoring"),
-    ("Vandeador", "Alchemy", "Tailoring"),
-    ("Vanjinx", "Alchemy", "Tailoring"),
-    ("Vanchii", "Leatherworking", "Tailoring"),
-    ("Vanrage", "Blacksmithing", "Inscription"),
-    ("Vantommenace", "Blacksmithing", "Jewelcrafting"),
-    ("Vanethos", "Alchemy", "Tailoring"),
-    ("Vandroid", "Alchemy", "Tailoring"),
-    ("Vanhellsing", "Alchemy", "Tailoring"),
-    ("Vango", "Alchemy", "Tailoring"),
-    ("Vanhailen", "Alchemy", "Tailoring"),
-    ("Miniivan", "Alchemy", "Tailoring"),
-    ("Vanishing", "Alchemy", "Tailoring"),
-    ("Windowlesvan", "Alchemy", "Tailoring"),
-    ("Vancleavee", "Alchemy", "Inscription"),
-    ("Vansurge", "Alchemy", "Inscription"),
-    ("Vantastic", "Alchemy", "Inscription"),
-    ("Vanlock", "Alchemy", "Enchanting"),
-    ("Vanomaly", "Alchemy", "Enchanting"),
-    ("Vandreador", "Alchemy", "Enchanting"),
-    ("Vanwick", "Alchemy", "Enchanting"),
-    ("Vantidote", "Alchemy", "Enchanting"),
-    ("Vannoying", "Alchemy", "Enchanting"),
-    ("Vandemonium", "Alchemy", "Blacksmithing"),
-    ("Vandalorian", "Alchemy", "Blacksmithing"),
-    ("Vangobrr", "Alchemy", "Blacksmithing"),
-    ("Venlemix", "Alchemy", "Blacksmithing"),
 ]
 
 MIDNIGHT_RECIPES = [
@@ -104,35 +73,6 @@ def seed_professions():
         session.commit()
     print("Seeding complete")
 
-def seed_characters():
-    with Session(engine) as session:
-        professions = session.exec(
-            select(Profession),
-        ).all()
-        profession_ids = {profession.name: profession.id for profession in professions}
-
-        characters = session.exec(
-            select(Character),
-        ).all()
-        existing_names = {character.name.casefold() for character in characters}
-
-        for name, profession1, profession2 in CHARACTERS:
-            if name.casefold() in existing_names:
-                continue
-
-            character = Character(
-                name=name,
-                profession1_id=profession_ids[profession1],
-                profession2_id=profession_ids[profession2],
-                concentration=1000,
-            )
-            session.add(character)
-            existing_names.add(
-                name.casefold(),
-            )
-
-        session.commit()
-
 def seed_recipes():
     with Session(engine) as session:
         expansion = session.exec(
@@ -164,7 +104,6 @@ def seed_recipes():
                     name=name,
                     profession_id=profession_id,
                     expansion_id=expansion.id,
-                    profit_per_craft=0,
                 )
                 session.add(recipe)
                 session.flush()
@@ -196,23 +135,21 @@ def seed_recipes():
                     session.add(recipe_ingredient)
 
         session.commit()
-        
+
 def seed_initial_data():
-    """Explicitly load starter data; never called during normal application startup."""
+    """Explicitly load shared starter data; never called during normal application startup."""
     seed_professions()
+
     with Session(engine) as session:
         expansion = session.exec(
             select(Expansion).where(Expansion.name == "Midnight"),
         ).first()
+
         if expansion is None:
             expansion = Expansion(name="Midnight")
             session.add(expansion)
-            session.flush()
-        if session.get(AppSettings, 1) is None:
-            settings = AppSettings(id=1, current_expansion_id=expansion.id)
-            session.add(settings)
-        session.commit()
-    seed_characters()
+            session.commit()
+
     seed_recipes()
 
 if __name__ == "__main__":

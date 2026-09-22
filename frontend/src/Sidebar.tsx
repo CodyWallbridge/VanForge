@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { authClient } from "./auth";
 
 interface SidebarProps {
     darkMode: boolean;
     onDarkModeChange: (enabled: boolean) => void;
+    isAdmin: boolean;
 }
 
 const navigationGroups = [
@@ -28,6 +30,7 @@ const navigationGroups = [
         label: "Settings",
         items: [
             { to: "/expansions", label: "Expansions" },
+            { to: "/accounts", label: "Accounts", adminOnly: true },
         ],
     },
 ];
@@ -35,6 +38,7 @@ const navigationGroups = [
 export default function Sidebar({
     darkMode,
     onDarkModeChange,
+    isAdmin,
 }: SidebarProps) {
     const location = useLocation();
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
@@ -57,6 +61,10 @@ export default function Sidebar({
             ...previous,
             [groupId]: !previous[groupId],
         }));
+    }
+
+    async function signOut() {
+        await authClient.signOut();
     }
 
     return (
@@ -90,7 +98,7 @@ export default function Sidebar({
                             className="sidebar-links"
                             hidden={!openGroups[group.id]}
                         >
-                            {group.items.map((item) => (
+                            {group.items.filter((item) => !item.adminOnly || isAdmin).map((item) => (
                                 <li key={item.to}>
                                     <NavLink
                                         to={item.to}
@@ -110,6 +118,14 @@ export default function Sidebar({
             </nav>
 
             <div className="sidebar-footer">
+                <button
+                    type="button"
+                    className="sign-out-button"
+                    onClick={signOut}
+                >
+                    Sign out
+                </button>
+
                 <label className="theme-toggle">
                     <span>Dark mode</span>
                     <input

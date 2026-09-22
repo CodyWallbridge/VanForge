@@ -11,6 +11,7 @@ Create a `.env` file in the project root:
 ```dotenv
 DATABASE_URL=postgresql://username:password@host/database?sslmode=require
 TEST_DATABASE_URL=postgresql://username:password@test-host/test-database?sslmode=require
+NEON_AUTH_JWKS_URL=https://your-neon-auth-host/.well-known/jwks.json
 ```
 
 `DATABASE_URL` is used by the application and Alembic. `TEST_DATABASE_URL` must point to a separate database or Neon branch because integration tests recreate its application tables.
@@ -22,7 +23,7 @@ python -m pip install -r backend/requirements-dev.txt
 python -m alembic upgrade head
 ```
 
-To load the starter expansion, characters, recipes, ingredients, and professions:
+To load the starter expansion, recipes, ingredients, and professions:
 
 ```cmd
 python -m backend.app.seeds
@@ -114,6 +115,14 @@ Deleting a character removes its recipe assignments. Deleting a recipe removes i
 | `/planner/options/{character_id}` | List eligible crafting options |
 | `/planner/` | Validate a submitted plan and total ingredients |
 | `/planner/optimize` | Maximize profit for selected characters |
+| `/accounts/me` | Read or create the authenticated local account |
+| `/accounts/` | List local accounts as an administrator |
+| `/accounts/{id}/role` | Change a local account role as an administrator |
+| `/accounts/{id}` | Delete another local account and its owned data as an administrator |
+
+All application endpoints except the root health response require a valid Neon Auth bearer token. Shared catalog data can be read by every authenticated account. Expansion, ingredient, and recipe mutations require the local `admin` role.
+
+Characters, selected expansion settings, and recipe profits belong to a local account. Deleting a local account removes those records through database cascades without deleting the Neon Auth identity. A later authenticated request from that identity creates a fresh local account.
 
 ## Crafting rules
 
@@ -121,7 +130,7 @@ Characters have two distinct professions and a concentration balance from 0 to 1
 
 Changing professions preserves learned recipes and concentration costs. Current recipe lists and planning use active professions and the selected expansion.
 
-Recipes store profit in whole gold, including negative values. Concentration costs belong to character-recipe assignments.
+Each account stores its own profit per recipe in whole gold, including negative values. Concentration costs belong to character-recipe assignments.
 
 Recipe ingredients accept either an ingredient ID or a name, together with a positive quantity. Existing names are intended to match case-insensitively. Duplicate ingredients within a recipe are rejected.
 

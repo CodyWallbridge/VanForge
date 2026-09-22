@@ -1,23 +1,26 @@
 import pytest
-from sqlmodel import Session
-from backend.app.models import AppSettings, Character, CharacterRecipe, Ingredient, Recipe, RecipeIngredient
+from sqlmodel import Session, select
+from backend.app.models import AppSettings, Character, CharacterRecipe, Ingredient, Recipe, RecipeIngredient, RecipeProfit
 
 @pytest.fixture
 def optimization_catalog(test_engine, catalog):
     with Session(test_engine) as session:
         first = Character(
+            account_id=catalog["account"],
             name="First",
             profession1_id=catalog["alchemy"],
             profession2_id=catalog["blacksmithing"],
             concentration=10,
         )
         second = Character(
+            account_id=catalog["account"],
             name="Second",
             profession1_id=catalog["alchemy"],
             profession2_id=catalog["blacksmithing"],
             concentration=5,
         )
         empty = Character(
+            account_id=catalog["account"],
             name="Empty",
             profession1_id=catalog["alchemy"],
             profession2_id=catalog["blacksmithing"],
@@ -46,11 +49,16 @@ def optimization_catalog(test_engine, catalog):
                 name=f"Recipe {index}",
                 profession_id=profession,
                 expansion_id=expansion,
-                profit_per_craft=profit,
             )
             session.add(recipe)
             session.flush()
             recipe_ids.append(recipe.id)
+            recipe_profit = RecipeProfit(
+                account_id=catalog["account"],
+                recipe_id=recipe.id,
+                profit_per_craft=profit,
+            )
+            session.add(recipe_profit)
             link = RecipeIngredient(
                 recipe_id=recipe.id,
                 ingredient_id=material.id,
@@ -130,9 +138,12 @@ def test_invalid_selection(
 
     assert response.status_code == status
 
-def test_missing_selected_expansion(client, character, test_engine):
+def test_missing_selected_expansion(client, character, test_engine, catalog):
     with Session(test_engine) as session:
-        settings = session.get(AppSettings, 1)
+        settings = session.exec(
+            select(AppSettings)
+            .where(AppSettings.account_id == catalog["account"]),
+        ).one()
         session.delete(settings)
         session.commit()
 

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { faPen, faPlus, faTrashCan } from "@fortawesome/free-solid-svg-icons";
+import { faCoins, faPen, faPlus, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getExpansions } from "../api/expansions";
 import { getProfessions } from "../api/professions";
-import { createRecipe, deleteRecipe, getRecipes, updateRecipe } from "../api/recipes";
+import { createRecipe, deleteRecipe, getRecipes, updateRecipe, updateRecipeProfit } from "../api/recipes";
 import ConfirmDialog from "../components/ConfirmDialog";
 import DataTable from "../components/DataTable";
 import type { TableColumn } from "../components/DataTable";
@@ -13,13 +13,17 @@ import type { ProfessionRead } from "../dto/ProfessionRead";
 import type { RecipeRead } from "../dto/RecipeRead";
 import "./Recipes.css";
 
+interface RecipesProps {
+    canManageCatalog: boolean;
+}
+
 interface IngredientField {
     key: number;
     name: string;
     amount: string;
 }
 
-export default function Recipes() {
+export default function Recipes({ canManageCatalog }: RecipesProps) {
     const [recipes, setRecipes] = useState<RecipeRead[]>([]);
     const [professions, setProfessions] = useState<ProfessionRead[]>([]);
     const [expansions, setExpansions] = useState<ExpansionRead[]>([]);
@@ -40,6 +44,10 @@ export default function Recipes() {
     const [recipeToDelete, setRecipeToDelete] = useState<RecipeRead | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [profitRecipe, setProfitRecipe] = useState<RecipeRead | null>(null);
+    const [profitValue, setProfitValue] = useState("0");
+    const [profitError, setProfitError] = useState<string | null>(null);
+    const [savingProfit, setSavingProfit] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -86,6 +94,7 @@ export default function Recipes() {
     }
 
     function openAddForm() {
+        closeProfitForm();
         setEditingRecipe(null);
         setName("");
         setProfessionId("");
@@ -97,6 +106,7 @@ export default function Recipes() {
     }
 
     function openEditForm(recipe: RecipeRead) {
+        closeProfitForm();
         setEditingRecipe(recipe);
         setName(recipe.name);
         setProfessionId(String(recipe.profession_id));
@@ -227,6 +237,46 @@ export default function Recipes() {
         }
     }
 
+    function openProfitForm(recipe: RecipeRead) {
+        closeForm();
+        setProfitRecipe(recipe);
+        setProfitValue(String(recipe.profit_per_craft));
+        setProfitError(null);
+    }
+
+    function closeProfitForm() {
+        setProfitRecipe(null);
+        setProfitError(null);
+    }
+
+    async function saveProfit(event: React.SubmitEvent<HTMLFormElement>) {
+        event.preventDefault();
+
+        if (!profitRecipe) {
+            return;
+        }
+
+        const parsedProfit = Number(profitValue);
+
+        if (!Number.isSafeInteger(parsedProfit)) {
+            setProfitError("Profit must be a whole number of gold.");
+            return;
+        }
+
+        setProfitError(null);
+        setSavingProfit(true);
+
+        try {
+            const updated = await updateRecipeProfit(profitRecipe.id, parsedProfit);
+            setRecipes((previous) => previous.map((recipe) => recipe.id === updated.id ? updated : recipe));
+            closeProfitForm();
+        } catch (error) {
+            setProfitError(error instanceof Error ? error.message : "Unable to update recipe profit.");
+        } finally {
+            setSavingProfit(false);
+        }
+    }
+
     const professionNames = new Map(professions.map((profession) => [profession.id, profession.name]));
     const expansionNames = new Map(expansions.map((expansion) => [expansion.id, expansion.name]));
 
@@ -257,7 +307,7 @@ export default function Recipes() {
             <h1>Recipes</h1>
 
             <ConfirmDialog
-                open={recipeToDelete !== null}
+                open={canManageCatalog && recipeToDelete !== null}
                 title="Delete recipe?"
                 message={<>Delete <strong>{recipeToDelete?.name}</strong>? Its ingredient links and character assignments will also be removed.</>}
                 confirmLabel="Delete recipe"
@@ -338,6 +388,29 @@ export default function Recipes() {
                 </form>
             )}
 
+            {profitRecipe && (
+                <form className="recipe-form" onSubmit={saveProfit}>
+                    <h2>Update profit for {profitRecipe.name}</h2>
+                    <div className="recipe-form-fields">
+                        <label>
+                            Profit per craft (gold)
+                            <input type="number" step="1" value={profitValue} onChange={(event) => setProfitValue(event.target.value)} required />
+                        </label>
+                    </div>
+
+                    {profitError && <p role="alert" className="recipe-form-error">{profitError}</p>}
+
+                    <div className="recipe-form-actions">
+                        <button type="submit" className="recipe-save-button" disabled={savingProfit}>
+                            {savingProfit ? "Saving..." : "Save profit"}
+                        </button>
+                        <button type="button" className="recipe-cancel-button" disabled={savingProfit} onClick={closeProfitForm}>
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            )}
+
             {loading && <p role="status">Loading recipes...</p>}
             {loadError && <p role="alert">{loadError}</p>}
 
@@ -350,18 +423,25 @@ export default function Recipes() {
                     emptyMessage={recipes.length === 0 ? "No recipes added yet." : "No matching recipes."}
                     rowActions={(recipe) => (
                         <div className="recipe-row-actions">
-                            <button type="button" disabled={saving || deletingId !== null} onClick={() => openEditForm(recipe)} aria-label={`Edit ${recipe.name}`}>
-                                <FontAwesomeIcon icon={faPen} aria-hidden="true" />
+                            <button type="button" disabled={savingProfit} onClick={() => openProfitForm(recipe)} aria-label={`Edit profit for ${recipe.name}`}>
+                                <FontAwesomeIcon icon={faCoins} aria-hidden="true" />
                             </button>
-                            <button type="button" disabled={saving || deletingId !== null} onClick={() => {
-                                setDeleteError(null);
-                                setRecipeToDelete(recipe);
-                            }} aria-label={`Delete ${recipe.name}`}>
-                                <FontAwesomeIcon icon={faTrashCan} aria-hidden="true" />
-                            </button>
+                            {canManageCatalog && (
+                                <>
+                                    <button type="button" disabled={saving || deletingId !== null} onClick={() => openEditForm(recipe)} aria-label={`Edit ${recipe.name}`}>
+                                        <FontAwesomeIcon icon={faPen} aria-hidden="true" />
+                                    </button>
+                                    <button type="button" disabled={saving || deletingId !== null} onClick={() => {
+                                        setDeleteError(null);
+                                        setRecipeToDelete(recipe);
+                                    }} aria-label={`Delete ${recipe.name}`}>
+                                        <FontAwesomeIcon icon={faTrashCan} aria-hidden="true" />
+                                    </button>
+                                </>
+                            )}
                         </div>
                     )}
-                    action={!showForm && (
+                    action={canManageCatalog && !showForm && (
                         <button type="button" className="recipe-add-button" onClick={openAddForm}>
                             <FontAwesomeIcon icon={faPlus} aria-hidden="true" />
                             <span>Add recipe</span>

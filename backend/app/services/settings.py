@@ -13,8 +13,12 @@ class SettingsService(BaseService):
     def __init__(self, engine_override=None):
         self.engine = engine_override or engine
 
-    def get_current(self, session: Session):
-        return self.data_accessor.get_current(session)
+    def get_current(
+        self,
+        session: Session,
+        account_id: int,
+    ):
+        return self.data_accessor.get_current(session, account_id)
 
     def uses_expansion(
         self,
@@ -23,9 +27,9 @@ class SettingsService(BaseService):
     ):
         return self.data_accessor.uses_expansion(session, expansion_id)
 
-    def get_settings(self):
+    def get_settings(self, account_id: int):
         with Session(self.engine) as session:
-            current = self.get_current(session)
+            current = self.get_current(session, account_id)
 
             if current is None:
                 raise HTTPException(status_code=400, detail="Select an expansion first")
@@ -40,7 +44,11 @@ class SettingsService(BaseService):
 
             return result
 
-    def update_settings(self, settings_data: AppSettingsUpdate):
+    def update_settings(
+        self,
+        settings_data: AppSettingsUpdate,
+        account_id: int,
+    ):
         from .expansions import ExpansionService
 
         expansion_service = ExpansionService()
@@ -51,10 +59,10 @@ class SettingsService(BaseService):
             if expansion is None:
                 raise HTTPException(status_code=404, detail="Expansion not found")
 
-            current = self.get_current(session)
+            current = self.get_current(session, account_id)
 
             if current is None:
-                current = AppSettings(id=1, current_expansion_id=expansion.id)
+                current = AppSettings(account_id=account_id, current_expansion_id=expansion.id)
                 current = self.create(entity=current, session=session)
             else:
                 current.current_expansion_id = expansion.id

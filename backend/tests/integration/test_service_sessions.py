@@ -138,7 +138,7 @@ def test_recipe_wrappers_return_current_relationships_after_session_closes(test_
         expansion_id=catalog["midnight"],
         ingredients=[entry],
     )
-    recipe = service.create_recipe(data)
+    recipe = service.create_recipe(data, catalog["account"])
     recipe_id = recipe.id
 
     assert recipe.ingredients[0].amount_required == 2
@@ -146,8 +146,8 @@ def test_recipe_wrappers_return_current_relationships_after_session_closes(test_
 
     replacement = RecipeIngredientCreate(name="Shared Herb", amount_required=5)
     changes = RecipeUpdate(ingredients=[replacement])
-    updated = service.update_recipe(recipe_id, changes)
+    updated = service.update_recipe(recipe_id, changes, catalog["account"])
 
     assert updated.ingredients[0].amount_required == 5
     assert updated.ingredients[0].ingredient.name == "Shared Herb"
-    assert service.get_recipe(recipe_id).ingredients[0].amount_required == 5
+    assert service.get_recipe(recipe_id, catalog["account"]).ingredients[0].amount_required == 5

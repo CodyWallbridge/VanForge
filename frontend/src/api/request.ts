@@ -1,4 +1,5 @@
 import { API_URL } from "../config";
+import { neonAuth } from "../auth";
 
 interface ValidationError {
     loc: Array<string | number>;
@@ -14,6 +15,12 @@ export async function request<T>(
     options: RequestInit = {},
 ): Promise<T | undefined> {
     const headers = new Headers(options.headers);
+
+    const token = await neonAuth.getJWTToken();
+
+    if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+    }
 
     if (typeof options.body === "string" && !headers.has("Content-Type")) {
         headers.set("Content-Type", "application/json");

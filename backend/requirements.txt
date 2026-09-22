@@ -5,3 +5,4 @@ alembic
 pydantic>=2,<3
 python-dotenv
 psycopg[binary]
+PyJWT[crypto]

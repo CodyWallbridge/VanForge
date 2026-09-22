@@ -21,22 +21,50 @@ class CharacterService(BaseService):
     def __init__(self, engine_override=None):
         self.engine = engine_override or engine
 
-    def get_character(self, character_id: int):
+    def get_for_account(
+        self,
+        session: Session,
+        character_id: int,
+        account_id: int,
+    ):
+        return self.data_accessor.get_for_account(
+            session,
+            character_id,
+            account_id,
+        )
+
+    def get_character(
+        self,
+        character_id: int,
+        account_id: int,
+    ):
         with Session(self.engine) as session:
-            character = self.get(session, character_id)
+            character = self.get_for_account(
+                session,
+                character_id,
+                account_id,
+            )
 
             if character is None:
                 raise HTTPException(status_code=404, detail="Character not found")
 
             return character
 
-    def get_characters(self):
+    def get_characters(self, account_id: int):
         with Session(self.engine) as session:
-            return self.get_all(session)
+            return self.data_accessor.get_all_for_account(session, account_id)
 
-    def delete_character(self, character_id: int):
+    def delete_character(
+        self,
+        character_id: int,
+        account_id: int,
+    ):
         with Session(self.engine) as session:
-            character = self.get(session, character_id)
+            character = self.get_for_account(
+                session,
+                character_id,
+                account_id,
+            )
 
             if character is None:
                 raise HTTPException(status_code=404, detail="Character not found")
@@ -45,7 +73,11 @@ class CharacterService(BaseService):
 
             session.commit()
 
-    def create_character(self, character_data: CharacterCreate):
+    def create_character(
+        self,
+        character_data: CharacterCreate,
+        account_id: int,
+    ):
         with Session(self.engine) as session:
             name = clean_name(character_data.name)
 
@@ -56,6 +88,7 @@ class CharacterService(BaseService):
             )
 
             character = Character(
+                account_id=account_id,
                 name=name,
                 profession1_id=character_data.profession1_id,
                 profession2_id=character_data.profession2_id,
@@ -73,9 +106,14 @@ class CharacterService(BaseService):
         self,
         character_id: int,
         character_data: CharacterUpdate,
+        account_id: int,
     ):
         with Session(self.engine) as session:
-            character = self.data_accessor.get(session, character_id)
+            character = self.get_for_account(
+                session,
+                character_id,
+                account_id,
+            )
 
             if character is None:
                 raise HTTPException(status_code=404, detail="Character not found")
@@ -107,14 +145,22 @@ class CharacterService(BaseService):
 
             return character
 
-    def get_character_recipes(self, character_id: int):
+    def get_character_recipes(
+        self,
+        character_id: int,
+        account_id: int,
+    ):
         with Session(self.engine) as session:
-            character = self.data_accessor.get(session, character_id)
+            character = self.get_for_account(
+                session,
+                character_id,
+                account_id,
+            )
 
             if character is None:
                 raise HTTPException(status_code=404, detail="Character not found")
 
-            app_settings = self.settings_service.get_current(session=session)
+            app_settings = self.settings_service.get_current(session, account_id)
 
             if app_settings is None:
                 raise HTTPException(status_code=400, detail="Select an expansion before viewing current recipes")
@@ -131,9 +177,14 @@ class CharacterService(BaseService):
         self,
         character_id: int,
         recipe_data: CharacterRecipeCreate,
+        account_id: int,
     ):
         with Session(self.engine) as session:
-            character = self.data_accessor.get(session, character_id)
+            character = self.get_for_account(
+                session,
+                character_id,
+                account_id,
+            )
 
             if character is None:
                 raise HTTPException(status_code=404, detail="Character not found")
@@ -172,9 +223,14 @@ class CharacterService(BaseService):
         character_id: int,
         recipe_id: int,
         recipe_data: CharacterRecipeUpdate,
+        account_id: int,
     ):
         with Session(self.engine) as session:
-            character = self.data_accessor.get(session, character_id)
+            character = self.get_for_account(
+                session,
+                character_id,
+                account_id,
+            )
 
             if character is None:
                 raise HTTPException(status_code=404, detail="Character not found")
@@ -200,9 +256,14 @@ class CharacterService(BaseService):
         self,
         character_id: int,
         recipe_id: int,
+        account_id: int,
     ):
         with Session(self.engine) as session:
-            character = self.data_accessor.get(session, character_id)
+            character = self.get_for_account(
+                session,
+                character_id,
+                account_id,
+            )
 
             if character is None:
                 raise HTTPException(status_code=404, detail="Character not found")

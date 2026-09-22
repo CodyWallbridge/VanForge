@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from .utils.validation import InvalidNameError
 from contextlib import asynccontextmanager
 from .seeds import seed_professions
-from .routers import characters, ingredients, recipes, planner, expansions, settings, professions
+from .routers import accounts, characters, ingredients, recipes, planner, expansions, settings, professions
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,7 +14,8 @@ async def lifespan(app: FastAPI):
     # shutdown (nothing needed right now)
 
 app = FastAPI(lifespan=lifespan)
-    
+
+app.include_router(accounts.router)
 app.include_router(characters.router)
 app.include_router(ingredients.router)
 app.include_router(recipes.router)

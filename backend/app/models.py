@@ -8,10 +8,22 @@ class Expansion(SQLModel, table=True):
 
     recipes: List["Recipe"] = Relationship(back_populates="expansion")
 
+class Account(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    auth_user_id: str = Field(unique=True, index=True)
+    email: Optional[str] = None
+    role: str = Field(default="user")
+
+    characters: List["Character"] = Relationship(back_populates="account", sa_relationship_kwargs={"passive_deletes": "all"})
+    settings: Optional["AppSettings"] = Relationship(back_populates="account", sa_relationship_kwargs={"passive_deletes": "all"})
+    recipe_profits: List["RecipeProfit"] = Relationship(back_populates="account", sa_relationship_kwargs={"passive_deletes": "all"})
+
 class AppSettings(SQLModel, table=True):
-    id: int = Field(default=1, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
+    account_id: int = Field(foreign_key="account.id", unique=True, ondelete="CASCADE")
     current_expansion_id: int = Field(foreign_key="expansion.id")
 
+    account: Optional[Account] = Relationship(back_populates="settings")
     current_expansion: Optional[Expansion] = Relationship()
 
 class Profession(SQLModel, table=True):
@@ -36,6 +48,7 @@ class CharacterRecipe(SQLModel, table=True):
 
 class Character(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    account_id: int = Field(foreign_key="account.id", ondelete="CASCADE")
     name: str
 
     profession1_id: int = Field(foreign_key="profession.id")
@@ -43,7 +56,21 @@ class Character(SQLModel, table=True):
 
     concentration: int = 1000
 
+    account: Optional[Account] = Relationship(back_populates="characters")
     recipes: List[CharacterRecipe] = Relationship(back_populates="character", sa_relationship_kwargs={"passive_deletes": "all"})
+
+class RecipeProfit(SQLModel, table=True):
+    __table_args__ = (
+        UniqueConstraint("account_id", "recipe_id", name="uq_recipeprofit_account_recipe"),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    account_id: int = Field(foreign_key="account.id", ondelete="CASCADE")
+    recipe_id: int = Field(foreign_key="recipe.id", ondelete="CASCADE")
+    profit_per_craft: int = 0
+
+    account: Optional[Account] = Relationship(back_populates="recipe_profits")
+    recipe: Optional["Recipe"] = Relationship(back_populates="profits")
 
 class RecipeIngredient(SQLModel, table=True):
     __table_args__ = (
@@ -62,8 +89,6 @@ class RecipeIngredient(SQLModel, table=True):
 class Recipe(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    profit_per_craft: int = 0
-
     profession_id: int = Field(foreign_key="profession.id")
     expansion_id: int = Field(foreign_key="expansion.id")
 
@@ -72,6 +97,7 @@ class Recipe(SQLModel, table=True):
 
     ingredients: List[RecipeIngredient] = Relationship(back_populates="recipe", sa_relationship_kwargs={"passive_deletes": "all"})
     characters: List[CharacterRecipe] = Relationship(back_populates="recipe", sa_relationship_kwargs={"passive_deletes": "all"})
+    profits: List[RecipeProfit] = Relationship(back_populates="recipe", sa_relationship_kwargs={"passive_deletes": "all"})
 
 class Ingredient(SQLModel, table=True):
     id: Optional[int]  = Field(default=None, primary_key=True)

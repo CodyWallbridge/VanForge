@@ -116,6 +116,25 @@
     border-top: 1px solid var(--border-color);
 }
 
+.sign-out-button {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-color);
+    background: transparent;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sign-out-button:hover {
+    color: var(--accent-text);
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
 .theme-toggle {
     display: flex;
     align-items: center;
@@ -159,4 +178,13 @@
     .main-content {
         padding: 24px;
     }
+}
+
+.app-loading {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    font-weight: 600;
 }

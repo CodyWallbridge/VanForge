@@ -8,24 +8,34 @@ from .optimization import optimize_crafts
 from .base import BaseService
 from .characters import CharacterService
 from .recipes import RecipeService
+from .recipe_profits import RecipeProfitService
 from .settings import SettingsService
 
 class PlannerService(BaseService):
     character_service = CharacterService()
     recipe_service = RecipeService()
+    recipe_profit_service = RecipeProfitService()
     settings_service = SettingsService()
 
     def __init__(self, engine_override=None):
         self.engine = engine_override or engine
 
-    def get_options(self, character_id: int):
+    def get_options(
+        self,
+        character_id: int,
+        account_id: int,
+    ):
         with Session(self.engine) as session:
-            character = self.character_service.get(session, character_id)
+            character = self.character_service.get_for_account(
+                session,
+                character_id,
+                account_id,
+            )
 
             if character is None:
                 raise HTTPException(status_code=404, detail="Character not found")
 
-            settings = self.settings_service.get_current(session)
+            settings = self.settings_service.get_current(session, account_id)
 
             if settings is None:
                 raise HTTPException(status_code=400, detail="Select an expansion before planning")
@@ -59,18 +69,26 @@ class PlannerService(BaseService):
 
             return options
 
-    def calculate_plan(self, plan: list[CharacterPlanItem]):
+    def calculate_plan(
+        self,
+        plan: list[CharacterPlanItem],
+        account_id: int,
+    ):
         with Session(self.engine) as session:
             ingredient_totals = {}
             concentration_used = {}
 
-            settings = self.settings_service.get_current(session)
+            settings = self.settings_service.get_current(session, account_id)
 
             if settings is None:
                 raise HTTPException(status_code=400, detail="Select an expansion before planning")
 
             for item in plan:
-                character = self.character_service.get(session, item.character_id)
+                character = self.character_service.get_for_account(
+                    session,
+                    item.character_id,
+                    account_id,
+                )
 
                 if character is None:
                     raise HTTPException(status_code=404, detail="Character not found")
@@ -115,9 +133,13 @@ class PlannerService(BaseService):
 
             return ingredient_totals
 
-    def optimize_plan(self, request: OptimizationRequest):
+    def optimize_plan(
+        self,
+        request: OptimizationRequest,
+        account_id: int,
+    ):
         with Session(self.engine) as session:
-            settings = self.settings_service.get_current(session)
+            settings = self.settings_service.get_current(session, account_id)
 
             if settings is None:
                 raise HTTPException(status_code=400, detail="Select an expansion before planning")
@@ -127,7 +149,11 @@ class PlannerService(BaseService):
             total_profit = 0
 
             for character_id in request.character_ids:
-                character = self.character_service.get(session, character_id)
+                character = self.character_service.get_for_account(
+                    session,
+                    character_id,
+                    account_id,
+                )
 
                 if character is None:
                     raise HTTPException(status_code=404, detail="Character not found")
@@ -154,7 +180,12 @@ class PlannerService(BaseService):
                     if assignment.concentration_cost <= 0:
                         raise HTTPException(status_code=400, detail="Invalid concentration cost")
 
-                    option = (recipe.id, assignment.concentration_cost, recipe.profit_per_craft)
+                    profit = self.recipe_profit_service.get_value(
+                        session,
+                        account_id,
+                        recipe.id,
+                    )
+                    option = (recipe.id, assignment.concentration_cost, profit)
                     options_by_profession[recipe.profession_id].append(option)
 
                 profession_results = []

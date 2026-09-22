@@ -10,7 +10,11 @@ import type { AppSettingsRead } from "../dto/AppSettingsRead";
 import type { ExpansionRead } from "../dto/ExpansionRead";
 import "./Expansions.css";
 
-export default function Expansions() {
+interface ExpansionsProps {
+    canManageCatalog: boolean;
+}
+
+export default function Expansions({ canManageCatalog }: ExpansionsProps) {
     const [expansions, setExpansions] = useState<ExpansionRead[]>([]);
     const [settings, setSettings] = useState<AppSettingsRead | null>(null);
     const [loading, setLoading] = useState(true);
@@ -174,7 +178,7 @@ export default function Expansions() {
             <h1>Expansions</h1>
 
             <ConfirmDialog
-                open={expansionToDelete !== null}
+                open={canManageCatalog && expansionToDelete !== null}
                 title="Delete expansion?"
                 message={<>Delete <strong>{expansionToDelete?.name}</strong>? This cannot be undone.</>}
                 confirmLabel="Delete expansion"
@@ -235,31 +239,35 @@ export default function Expansions() {
                                         {settingCurrentId === expansion.id ? "Selecting..." : "Make current"}
                                     </button>
                                 )}
-                                <button
-                                    type="button"
-                                    className="expansion-icon-button"
-                                    disabled={saving || deleting || settingCurrentId !== null}
-                                    onClick={() => openEditForm(expansion)}
-                                    aria-label={`Edit ${expansion.name}`}
-                                >
-                                    <FontAwesomeIcon icon={faPen} aria-hidden="true" />
-                                </button>
-                                <button
-                                    type="button"
-                                    className="expansion-icon-button"
-                                    disabled={saving || deleting || settingCurrentId !== null || expansion.id === settings?.current_expansion_id}
-                                    onClick={() => {
-                                        setDeleteError(null);
-                                        setExpansionToDelete(expansion);
-                                    }}
-                                    aria-label={`Delete ${expansion.name}`}
-                                    title={expansion.id === settings?.current_expansion_id ? "Select another expansion before deleting this one" : undefined}
-                                >
-                                    <FontAwesomeIcon icon={faTrashCan} aria-hidden="true" />
-                                </button>
+                                {canManageCatalog && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            className="expansion-icon-button"
+                                            disabled={saving || deleting || settingCurrentId !== null}
+                                            onClick={() => openEditForm(expansion)}
+                                            aria-label={`Edit ${expansion.name}`}
+                                        >
+                                            <FontAwesomeIcon icon={faPen} aria-hidden="true" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="expansion-icon-button"
+                                            disabled={saving || deleting || settingCurrentId !== null || expansion.id === settings?.current_expansion_id}
+                                            onClick={() => {
+                                                setDeleteError(null);
+                                                setExpansionToDelete(expansion);
+                                            }}
+                                            aria-label={`Delete ${expansion.name}`}
+                                            title={expansion.id === settings?.current_expansion_id ? "Select another expansion before deleting this one" : undefined}
+                                        >
+                                            <FontAwesomeIcon icon={faTrashCan} aria-hidden="true" />
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         )}
-                        action={!showForm && (
+                        action={canManageCatalog && !showForm && (
                             <button type="button" className="expansion-add-button" onClick={openAddForm}>
                                 <FontAwesomeIcon icon={faPlus} aria-hidden="true" />
                                 <span>Add expansion</span>

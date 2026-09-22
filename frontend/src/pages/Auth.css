@@ -1,0 +1,93 @@
+.auth-page {
+    --neon-radius: 0.75rem;
+    --neon-background: var(--page-background);
+    --neon-foreground: var(--text-color);
+    --neon-card: var(--sidebar-background);
+    --neon-card-foreground: var(--text-color);
+    --neon-popover: var(--sidebar-background);
+    --neon-popover-foreground: var(--text-color);
+    --neon-primary: #c41a66;
+    --neon-primary-foreground: #ffffff;
+    --neon-secondary: var(--hover-background);
+    --neon-secondary-foreground: var(--text-color);
+    --neon-muted: var(--hover-background);
+    --neon-muted-foreground: var(--muted-text);
+    --neon-accent: #f4e4ec;
+    --neon-accent-foreground: #680e44;
+    --neon-destructive: #c41a66;
+    --neon-destructive-foreground: #ffffff;
+    --neon-border: var(--border-color);
+    --neon-input: var(--border-color);
+    --neon-ring: #4eb21b;
+
+    display: grid;
+    min-height: 100vh;
+    padding: 2rem;
+    place-items: center;
+    color: var(--text-color);
+    background:
+        radial-gradient(circle at top, rgb(196 26 102 / 22%), transparent 42%),
+        var(--page-background);
+}
+
+:root[data-theme="dark"] .auth-page {
+    --neon-accent: #680e44;
+    --neon-accent-foreground: #f7f2f5;
+}
+
+[data-sonner-toaster][data-x-position="right"] {
+    right: 50% !important;
+    left: auto !important;
+    transform: translateX(50%);
+}
+
+[data-sonner-toaster][data-y-position="bottom"] {
+    top: 96px !important;
+    bottom: auto !important;
+}
+
+[data-sonner-toaster] {
+    --width: min(480px, calc(100vw - 32px));
+}
+
+[data-sonner-toast][data-y-position="bottom"] {
+    top: 0 !important;
+    bottom: auto !important;
+    --y: translateY(-100%);
+    --lift: 1;
+}
+
+[data-sonner-toast][data-type="error"] {
+    padding: 16px 18px !important;
+    color: #ffffff !important;
+    background: #680e44 !important;
+    border: 2px solid #c41a66 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 10px 30px rgb(16 24 22 / 45%) !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] {
+    color: #ffffff !important;
+}
+
+[data-sonner-toast][data-type="success"] {
+    padding: 16px 18px !important;
+    color: #ffffff !important;
+    background: #19231f !important;
+    border: 2px solid #4eb21b !important;
+    border-radius: 10px !important;
+    box-shadow: 0 10px 30px rgb(16 24 22 / 45%) !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-icon] {
+    color: #4eb21b !important;
+}
+
+.auth-code-input {
+    width: 100%;
+    justify-content: center;
+}
