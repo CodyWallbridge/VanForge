@@ -134,7 +134,7 @@ export default function App() {
     return (
         <NeonAuthUIProvider
             authClient={authClient}
-            redirectTo="/maximize"
+            redirectTo={`${import.meta.env.BASE_URL}maximize`}
             emailVerification={{ otp: true }}
             localization={{
                 SIGN_UP_EMAIL: "Account created. Check your email for a verification code.",
