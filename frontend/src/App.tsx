@@ -44,9 +44,11 @@ function ProtectedApplication({
     onDarkModeChange,
 }: ProtectedApplicationProps) {
     const session = authClient.useSession();
+    const navigate = useNavigate();
 
     const [account, setAccount] = useState<AuthenticatedUser | null>(null);
     const [accountError, setAccountError] = useState<string | null>(null);
+    const [signingOut, setSigningOut] = useState(false);
 
     useEffect(() => {
         if (!session.data) {
@@ -67,6 +69,16 @@ function ProtectedApplication({
             });
     }, [session.data]);
 
+    async function returnToSignIn() {
+        setSigningOut(true);
+
+        try {
+            await authClient.signOut();
+        } finally {
+            navigate("/auth/sign-in", { replace: true });
+        }
+    }
+
     if (session.isPending) {
         return <main className="app-loading">Loading VanForge...</main>;
     }
@@ -76,7 +88,17 @@ function ProtectedApplication({
     }
 
     if (accountError) {
-        return <main className="app-loading">{accountError}</main>;
+        return (
+            <main className="app-loading">
+                <div className="app-account-error" role="alert">
+                    <h1>Unable to load your account</h1>
+                    <p>{accountError}</p>
+                    <button type="button" disabled={signingOut} onClick={() => void returnToSignIn()}>
+                        {signingOut ? "Signing out..." : "Return to sign in"}
+                    </button>
+                </div>
+            </main>
+        );
     }
 
     if (!account) {

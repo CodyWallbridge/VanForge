@@ -188,3 +188,37 @@
     font-size: 1.1rem;
     font-weight: 600;
 }
+
+.app-account-error {
+    width: min(440px, calc(100% - 32px));
+    padding: 28px;
+    background: var(--sidebar-background);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px #0005;
+    text-align: center;
+}
+
+.app-account-error h1 {
+    margin-bottom: 12px;
+    font-size: 1.5rem;
+}
+
+.app-account-error p {
+    margin: 0 0 20px;
+}
+
+.app-account-error button {
+    padding: 10px 16px;
+    color: var(--accent-text);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.app-account-error button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
