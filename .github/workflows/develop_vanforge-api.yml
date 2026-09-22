@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - develop
+    paths:
+      - "backend/**"
+      - "alembic/**"
+      - "alembic.ini"
+      - ".github/workflows/develop_vanforge-api.yml"
   workflow_dispatch:
 
 jobs:
