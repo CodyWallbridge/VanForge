@@ -1,6 +1,7 @@
+from datetime import datetime, timezone
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Column, DateTime, UniqueConstraint
 
 class Expansion(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -17,6 +18,13 @@ class Account(SQLModel, table=True):
     characters: List["Character"] = Relationship(back_populates="account", sa_relationship_kwargs={"passive_deletes": "all"})
     settings: Optional["AppSettings"] = Relationship(back_populates="account", sa_relationship_kwargs={"passive_deletes": "all"})
     recipe_profits: List["RecipeProfit"] = Relationship(back_populates="account", sa_relationship_kwargs={"passive_deletes": "all"})
+
+class DeletedAuthUser(SQLModel, table=True):
+    auth_user_id: str = Field(primary_key=True)
+    deleted_at: Optional[datetime] = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=True),
+    )
 
 class AppSettings(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

@@ -1,5 +1,6 @@
 import pytest
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta, timezone
 from threading import Barrier
 from fastapi import HTTPException
 from sqlmodel import Session, select
@@ -7,7 +8,7 @@ from backend.app import main
 from backend.app.auth import AuthenticatedUser
 from backend.app.backend_models.account import AccountCRUD
 from backend.app.dependencies import get_current_account
-from backend.app.models import Account, AppSettings, Character, RecipeProfit
+from backend.app.models import Account, AppSettings, Character, DeletedAuthUser, RecipeProfit
 from backend.app.services.accounts import AccountService
 
 def test_account_bootstrap_handles_concurrent_first_requests(
@@ -86,6 +87,7 @@ def test_recipe_profit_is_private_to_each_account(
 
 def test_deleting_local_account_cascades_owned_data(
     catalog,
+    monkeypatch,
     test_engine,
 ):
     with Session(test_engine) as session:
@@ -118,6 +120,12 @@ def test_deleting_local_account_cascades_owned_data(
         account_id = account.id
 
     account_service = AccountService(engine_override=test_engine)
+    auth_user_created_at = None
+    monkeypatch.setattr(
+        account_service,
+        "get_auth_user_created_at",
+        lambda session, auth_user_id: auth_user_created_at,
+    )
     account_service.delete_account(
         catalog["account"],
         account_id,
@@ -125,6 +133,7 @@ def test_deleting_local_account_cascades_owned_data(
 
     with Session(test_engine) as session:
         assert session.get(Account, account_id) is None
+        assert session.get(DeletedAuthUser, "delete-user") is not None
         assert session.exec(
             select(AppSettings)
             .where(AppSettings.account_id == account_id),
@@ -138,12 +147,24 @@ def test_deleting_local_account_cascades_owned_data(
             .where(RecipeProfit.account_id == account_id),
         ).first() is None
 
+    with pytest.raises(HTTPException) as error:
+        account_service.get_or_create_account(
+            AuthenticatedUser(id="delete-user", email="delete@example.com"),
+        )
+
+    assert error.value.status_code == 403
+    assert error.value.detail == "This VanForge account was deleted. Sign up again to create a new account"
+
+    auth_user_created_at = datetime.now(timezone.utc) + timedelta(minutes=1)
     recreated = account_service.get_or_create_account(
         AuthenticatedUser(id="delete-user", email="delete@example.com"),
     )
 
     assert recreated.id != account_id
     assert recreated.role == "user"
+
+    with Session(test_engine) as session:
+        assert session.get(DeletedAuthUser, "delete-user") is None
 
 def test_active_account_cannot_delete_itself(
     catalog,
