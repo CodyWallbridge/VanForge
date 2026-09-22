@@ -70,7 +70,7 @@ export default function Sidebar({
     return (
         <aside className="sidebar">
             <Link className="sidebar-brand" to="/maximize" aria-label="VanForge home">
-                <img className="brand-icon" src="/vanforge.jpg" alt="" />
+                <img className="brand-icon" src={`${import.meta.env.BASE_URL}vanforge.jpg`} alt="" />
                 <span className="brand-copy">
                     <span className="brand-name"><span>Van</span><span>Forge</span></span>
                     <span className="brand-description">Crafting Planner</span>
